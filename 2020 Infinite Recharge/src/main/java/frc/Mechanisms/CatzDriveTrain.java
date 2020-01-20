@@ -1,21 +1,22 @@
 package frc.Mechanisms;
 
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
-public class CatzDriveTrain {
-    private static TalonFX drvTrainMtrCtrlLTFrnt;
-    private static TalonFX drvTrainMtrCtrlLTBack;
+public class CatzDriveTrain
+{
+    private static WPI_TalonFX drvTrainMtrCtrlLTFrnt;
+    private static WPI_TalonFX drvTrainMtrCtrlLTBack;
 
-    private static TalonFX drvTrainMtrCtrlRTFrnt;
-    private static TalonFX drvTrainMtrCtrlRTBack;
+    private static WPI_TalonFX drvTrainMtrCtrlRTFrnt;
+    private static WPI_TalonFX drvTrainMtrCtrlRTBack;
 
     private final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     private final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -40,7 +41,7 @@ public class CatzDriveTrain {
     double currentLimit = 60;
     double triggerThresholdCurrent = 60;
     double triggerThresholdTime = 5;
-//helloooooo?
+
     private static DoubleSolenoid gearShifter;
 
     private final int DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A = 0;
@@ -48,21 +49,22 @@ public class CatzDriveTrain {
 
     public CatzDriveTrain() 
     {
-        drvTrainMtrCtrlLTFrnt = new TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
-        drvTrainMtrCtrlLTBack = new TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
+        drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
+        drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
-        SpeedControllerGroup drvTrainLT = new SpeedControllerGroup((SpeedController) drvTrainMtrCtrlLTFrnt, (SpeedController) drvTrainMtrCtrlLTBack);
-        SpeedControllerGroup drvTrainRT = new SpeedControllerGroup((SpeedController) drvTrainMtrCtrlRTFrnt, (SpeedController) drvTrainMtrCtrlRTBack);
+        //drvTrainMtrCtrlLTBack.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 100);
+        //0 = primary loop
+        //100 = timeout in ms
 
-        drvTrainMtrCtrlRTFrnt = new TalonFX(DRVTRAIN_RT_FRNT_MC_CAN_ID);
-        drvTrainMtrCtrlRTBack = new TalonFX(DRVTRAIN_RT_BACK_MC_CAN_ID);
+        drvTrainMtrCtrlRTFrnt = new WPI_TalonFX(DRVTRAIN_RT_FRNT_MC_CAN_ID);
+        drvTrainMtrCtrlRTBack = new WPI_TalonFX(DRVTRAIN_RT_BACK_MC_CAN_ID);
 
         drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
 
-        
+        /*
         currentLimitConfigArray[enabledStatusIndex] = enabled;
         currentLimitConfigArray[currentLimitIndex] = currentLimit;
         currentLimitConfigArray[triggerThresholdCurrentIndex] = triggerThresholdCurrent;
@@ -73,19 +75,17 @@ public class CatzDriveTrain {
         drvTrainMtrCtrlLTFrnt.configGetStatorCurrentLimit(s);
         drvTrainMtrCtrlLTBack.configGetStatorCurrentLimit(s);
         drvTrainMtrCtrlRTFrnt.configGetStatorCurrentLimit(s);
-        drvTrainMtrCtrlRTBack.configGetStatorCurrentLimit(s);
+        drvTrainMtrCtrlRTBack.configGetStatorCurrentLimit(s);*/
+
+        drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
+        drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A, DRVTRAIN_HGEAR_SOLENOID_PCM_PORT_B);
     }
-    
-    public static void setDrvTrainLT(SpeedControllerGroup drvTrainLT) 
-    {
-        CatzDriveTrain.drvTrainLT = drvTrainLT;
-    }
 
-    public void arcadeDrive(final double power, final double rotation)
+    public void arcadeDrive(double power, double rotation)
     {
         drvTrainDifferentialDrive.arcadeDrive(power, rotation);
     }
