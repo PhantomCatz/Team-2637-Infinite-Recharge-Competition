@@ -65,23 +65,28 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    if(xboxDrv.getAButton())
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    }
+    
+    if(xboxDrv.getAButtonPressed())
     {
       driveTrain.setTargetVelocity(0);
     }
-    else if(xboxDrv.getBButton())
+    else if(xboxDrv.getBButtonPressed())
     {
       driveTrain.setTargetVelocity(10000);
     }
-    else if(xboxDrv.getXButton())
+    else if(xboxDrv.getXButtonPressed())
     {
       driveTrain.setTargetVelocity(500);
     }
-    else if(xboxDrv.getYButton())
+    else if(xboxDrv.getYButtonPressed())
     {
       driveTrain.setEncPosition(0);
     }
+    
   }
 
   @Override
@@ -95,5 +100,4 @@ public class Robot extends TimedRobot
   {
 
   }
-
 }
