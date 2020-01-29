@@ -65,6 +65,10 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
+   /**
+    * Choose a button to press on the controller, then press RT to submit the command to the motor.
+    */
+
     if(xboxDrv.getBumper(Hand.kRight))
     //{
       //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
@@ -75,11 +79,11 @@ public class Robot extends TimedRobot
     }
     else if(xboxDrv.getBButtonPressed())
     {
-      driveTrain.setTargetVelocity(10000);
+      driveTrain.setTargetVelocity(50);
     }
     else if(xboxDrv.getXButtonPressed())
     {
-      driveTrain.setTargetVelocity(500);
+      driveTrain.setEncPosition(500);
     }
     else if(xboxDrv.getYButtonPressed())
     {
