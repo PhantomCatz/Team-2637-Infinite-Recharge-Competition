@@ -1,15 +1,18 @@
 package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.FollowerType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.TalonFXConfiguration;
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CatzDriveTrain
 {
@@ -53,13 +56,19 @@ public class CatzDriveTrain
     private final double lowGearRatio  = 14/60;
     private final double highGearRatio = 24/50;
     
-    private final double integradedEncCountsPerRev = 2048;
+    private final double integratedEncCountsPerRev = 2048;
     private final double driveWheelRadius = 3;
 
     private boolean isDrvTrainInLowGear = false;
 
+    private static TalonSRX ltTalonEncTalon;
+    private static TalonSRX rtTalonEncTalon;
+
     public CatzDriveTrain() 
     {
+        ltTalonEncTalon = new TalonSRX(5);
+        rtTalonEncTalon = new TalonSRX(6);
+
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
@@ -86,21 +95,21 @@ public class CatzDriveTrain
         drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
-        
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);        
 
         /**
          *  Configure PID Gain Constants
          */
-        drvTrainMtrCtrlLTFrnt.config_kP(0, 0.3);
-        drvTrainMtrCtrlLTFrnt.config_kI(0, 0.0);
-        drvTrainMtrCtrlLTFrnt.config_kD(0, 0.0);
-        drvTrainMtrCtrlLTFrnt.config_kF(0, 0.0);
+        drvTrainMtrCtrlLTFrnt.config_kP(0, 0.3);  //.16
+        drvTrainMtrCtrlLTFrnt.config_kI(0, 0.0002); //0.0001
+        drvTrainMtrCtrlLTFrnt.config_kD(0, 10);   //.16
+        drvTrainMtrCtrlLTFrnt.config_kF(0, 0.085);
         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, 0);
 
-        drvTrainMtrCtrlRTFrnt.config_kP(0, 0.3);
-        drvTrainMtrCtrlRTFrnt.config_kI(0, 0.0);
-        drvTrainMtrCtrlRTFrnt.config_kD(0, 0.0);
+
+        drvTrainMtrCtrlRTFrnt.config_kP(0, 0.16);
+        drvTrainMtrCtrlRTFrnt.config_kI(0, 0.0001);
+        drvTrainMtrCtrlRTFrnt.config_kD(0, 0.16);
         drvTrainMtrCtrlRTFrnt.config_kF(0, 0.0);
         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0);
 
@@ -127,6 +136,17 @@ public class CatzDriveTrain
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A, DRVTRAIN_HGEAR_SOLENOID_PCM_PORT_B);
     }
 
+    public void talonEncsPos()
+    {
+        //SmartDashboard.putNumber("RT SRX Mag Pos", rtTalonEncTalon.getSensorCollection().getQuadraturePosition());
+        SmartDashboard.putNumber("LT SRX Mag Pos", ltTalonEncTalon.getSensorCollection().getQuadraturePosition());
+    }   
+    public void talonEncsVel()
+    {
+        //SmartDashboard.putNumber("RT SRX Mag Vel", rtTalonEncTalon.getSensorCollection().getQuadratureVelocity());
+        SmartDashboard.putNumber("LT SRX Mag Vel", ltTalonEncTalon.getSensorCollection().getQuadratureVelocity());
+    }
+
     public void arcadeDrive(double power, double rotation)
     {
         drvTrainDifferentialDrive.arcadeDrive(power, rotation);
@@ -149,6 +169,14 @@ public class CatzDriveTrain
     {
         return drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
     }
+    public double getLTEncLinearVelocity()
+    {
+        double linearVelocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        linearVelocity = (linearVelocity/0.1)/integratedEncCountsPerRev;
+        linearVelocity = (linearVelocity/gearRatio)/lowGearRatio;
+        linearVelocity = (linearVelocity*2*Math.PI)*driveWheelRadius; 
+        return linearVelocity*12;
+    }
 
     public double getRTEncPostion()
     {
@@ -167,6 +195,7 @@ public class CatzDriveTrain
     public void setTargetVelocity(double targetVelocity)
     {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
+        //drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
     }
 
     public void setEncPosition(int position)
@@ -186,10 +215,10 @@ public class CatzDriveTrain
         //convert to rev/s
         encoderVelocity = encoderVelocity / (2*Math.PI);
         //convert to counts/s
-        encoderVelocity = encoderVelocity * integradedEncCountsPerRev;
+        encoderVelocity = encoderVelocity * integratedEncCountsPerRev;
         //convert to counts/100ms
         encoderVelocity = encoderVelocity * 0.1;
-
+        
         if(isDrvTrainInLowGear)
         {
             encoderVelocity = encoderVelocity * lowGearRatio * gearRatio;
@@ -198,6 +227,7 @@ public class CatzDriveTrain
         {
             encoderVelocity = encoderVelocity * highGearRatio * gearRatio;
         }
+        SmartDashboard.putNumber("converted vel", encoderVelocity);
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, encoderVelocity);
     }
 }    

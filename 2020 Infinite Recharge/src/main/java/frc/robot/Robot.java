@@ -40,10 +40,13 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
-    SmartDashboard.putNumber("Enc Pos", driveTrain.getLTEncPosition());
-    SmartDashboard.putNumber("Enc Vel", driveTrain.getLTEncVelocity());
+    SmartDashboard.putNumber("Integraded Enc Pos", driveTrain.getLTEncPosition());
+    SmartDashboard.putNumber("Integraded Enc Vel", driveTrain.getLTEncVelocity());
 
+    driveTrain.talonEncsPos();
+    driveTrain.talonEncsVel();
 
+    SmartDashboard.putNumber("Integraded Enc Linear Vel", driveTrain.getLTEncLinearVelocity());
   }
 
   @Override
@@ -65,9 +68,17 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    if(xboxDrv.getBumper(Hand.kRight))
+    /*if(xboxDrv.getBumper(Hand.kRight))
     {
-      driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+      //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    }*/
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      driveTrain.deployGearShift();
+    }
+    else if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.retractGearShift();
     }
     
     if(xboxDrv.getAButtonPressed())
@@ -76,17 +87,17 @@ public class Robot extends TimedRobot
     }
     else if(xboxDrv.getBButtonPressed())
     {
-      driveTrain.setTargetVelocity(10000);
+      driveTrain.setTargetVelocity(5000);
     }
     else if(xboxDrv.getXButtonPressed())
     {
-      driveTrain.setTargetVelocity(500);
+      driveTrain.setTargetVelocity(1000);
     }
     else if(xboxDrv.getYButtonPressed())
     {
       driveTrain.setEncPosition(0);
     }
-    
+
   }
 
   @Override
