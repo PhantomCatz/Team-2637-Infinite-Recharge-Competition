@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatorCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
@@ -17,6 +18,9 @@ public class CatzDriveTrain
 
     private static WPI_TalonFX drvTrainMtrCtrlRTFrnt;
     private static WPI_TalonFX drvTrainMtrCtrlRTBack;
+
+    private static WPI_TalonSRX encoderLT;
+    private static WPI_TalonSRX encoderRT;
 
     private final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     private final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -59,19 +63,20 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTFrnt = new WPI_TalonFX(DRVTRAIN_RT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlRTBack = new WPI_TalonFX(DRVTRAIN_RT_BACK_MC_CAN_ID);
 
-        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
+        encoderLT = new WPI_TalonSRX(5);
+        encoderRT = new WPI_TalonSRX(6);
+
+        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Brake);
 
         /*
         currentLimitConfigArray[enabledStatusIndex] = enabled;
         currentLimitConfigArray[currentLimitIndex] = currentLimit;
         currentLimitConfigArray[triggerThresholdCurrentIndex] = triggerThresholdCurrent;
         currentLimitConfigArray[triggerThresholdTimeIndex] = triggerThresholdTime; 
-
         StatorCurrentLimitConfiguration s = new StatorCurrentLimitConfiguration(currentLimitConfigArray);
-
         drvTrainMtrCtrlLTFrnt.configGetStatorCurrentLimit(s);
         drvTrainMtrCtrlLTBack.configGetStatorCurrentLimit(s);
         drvTrainMtrCtrlRTFrnt.configGetStatorCurrentLimit(s);
@@ -83,6 +88,12 @@ public class CatzDriveTrain
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A, DRVTRAIN_HGEAR_SOLENOID_PCM_PORT_B);
+
+        drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor,0,100);
+        drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor,0,100);
+
+        drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,1,100);
+        drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,1,100);
     }
 
     public void arcadeDrive(double power, double rotation)
@@ -99,4 +110,54 @@ public class CatzDriveTrain
     {
         gearShifter.set(Value.kForward);
     }
-}    
+
+    public double getMotorTemperature(int id)
+    {
+        double temp = 0.0;
+
+        if(id == 1)
+        {
+            temp = drvTrainMtrCtrlLTFrnt.getTemperature();
+        } 
+        else if (id == 2)
+        
+        {   
+            temp = drvTrainMtrCtrlLTBack.getTemperature();
+        }
+        else if (id == 3)
+        {
+            temp = drvTrainMtrCtrlRTFrnt.getTemperature();
+        }
+        else if (id == 4)
+        {
+            temp = drvTrainMtrCtrlRTBack.getTemperature();
+        }
+
+        return temp;
+
+    }
+
+    public double getSrxMagLT() 
+    {
+       return encoderLT.getSensorCollection().getQuadraturePosition();
+        // return drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(1);
+    }
+
+    public double getSrxMagRT()
+    {
+        return encoderRT.getSensorCollection().getQuadraturePosition();
+       // return drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(1);
+    }
+
+    public double getInternaEncoderLT()
+    {
+        return drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
+    }
+
+    public double getInternaEncoderRT()
+    {
+        return drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
+    }
+
+    
+}
