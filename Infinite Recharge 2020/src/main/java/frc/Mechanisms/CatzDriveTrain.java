@@ -16,11 +16,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CatzDriveTrain
 {
-    public static WPI_TalonFX drvTrainMtrCtrlLTFrnt; //Private
-    public static WPI_TalonFX drvTrainMtrCtrlLTBack;
-
-    public static WPI_TalonFX drvTrainMtrCtrlRTFrnt;
-    public static WPI_TalonFX drvTrainMtrCtrlRTBack;
+    private WPI_TalonFX drvTrainMtrCtrlLTFrnt;
+    private WPI_TalonFX drvTrainMtrCtrlLTBack;
+    private WPI_TalonFX drvTrainMtrCtrlRTFrnt;
+    private WPI_TalonFX drvTrainMtrCtrlRTBack;
 
     private static WPI_TalonSRX srxEncLT;
     private static WPI_TalonSRX srxEncRT;
@@ -38,33 +37,36 @@ public class CatzDriveTrain
 
     private static DoubleSolenoid gearShifter;
 
-    private final int DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A = 0; //Solenoid Port A PCM
-    private final int DRVTRAIN_HGEAR_SOLENOID_PCM_PORT_B = 1;
+    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
+    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-    private final double gearRatio     = 11/44; //Make values as constants
+    private final double gearRatio     = 11/44;
     private final double lowGearRatio  = 14/60;
     private final double highGearRatio = 24/50;
     
     private final double integratedEncCountsPerRev = 2048;
     private final double driveWheelRadius = 3;
 
-    private boolean isDrvTrainInLowGear = false;    //boolean high = true;
+    private boolean isDrvTrainInHighGear = true;    //boolean high = true;
 
     private AnalogInput pressureSensor;
 
-    private final int PRESSURE_SENSOR_PORT_A = 3; //Change the name
+    private final int PRESSURE_SENSOR_ANALOG_PORT_A = 3; //Change the name
 
     private final double PRESSURE_SENSOR_VOLTAGE_OFFSET = 0.5;
 
-    private final double    PRESSURE_SENSOR_VOLATGE_RANGE = 4.0; //4.5-0.5
+    private final double PRESSURE_SENSOR_VOLATGE_RANGE = 4.5; //4.5-0.5
     private final double MAX_PRESSURE = 200;
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
-    public boolean enableCurrentLimit = true;  //private
-    public int currentLimitAmps = 60;
-    public int currentLimitTriggerAmps = 80;
-    public int currentLimitTimeoutSeconds = 5;
+    private boolean enableCurrentLimit = true; 
+    private int currentLimitAmps = 60;
+    private int currentLimitTriggerAmps = 80;
+    private int currentLimitTimeoutSeconds = 5;
+
+    private final int PID_IDX = 0;
+    private final int PID_TIMEOUT_MS = 10;
 
 
     public CatzDriveTrain() 
@@ -85,7 +87,6 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTBack.configFactoryDefault();
         
         //Set current limit
-
         drvTrainCurrentLimit = new SupplyCurrentLimitConfiguration(enableCurrentLimit, currentLimitAmps, currentLimitTriggerAmps, currentLimitTimeoutSeconds);
 
         drvTrainMtrCtrlLTFrnt.configSupplyCurrentLimit(drvTrainCurrentLimit);
@@ -109,11 +110,8 @@ public class CatzDriveTrain
         drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         //Configure feedback device for PID loop
-        drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 100); //Constants
-        drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, 0, 100);
-
-      //  drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,1,100); //delete it
-      //  drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative,1,100);
+        drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX, PID_TIMEOUT_MS); //Constants
+        drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX, PID_TIMEOUT_MS);
 
         //Configure PID Gain Constants
         drvTrainMtrCtrlLTFrnt.config_kP(0, 0.05);
@@ -129,9 +127,9 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTFrnt.config_kF(0, 0.005);
         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
 
-        gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PCM_PORT_A, DRVTRAIN_HGEAR_SOLENOID_PCM_PORT_B);
+        gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM, DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM);
 
-        pressureSensor = new AnalogInput(PRESSURE_SENSOR_PORT_A);
+        pressureSensor = new AnalogInput(PRESSURE_SENSOR_ANALOG_PORT_A);
 
     }
 
@@ -140,14 +138,16 @@ public class CatzDriveTrain
         drvTrainDifferentialDrive.arcadeDrive(power, rotation);
     }
 
-    public void deployGearShift()  //shift to high or low
+    public void shiftToHighGear()
     {
         gearShifter.set(Value.kReverse);
+        isDrvTrainInHighGear = true;
     }
     
-    public void retractGearShift()
+    public void shiftToLowGear()
     {
         gearShifter.set(Value.kForward);
+        isDrvTrainInHighGear = false;
     }
 
     public double getMotorTemperature(int id)
@@ -176,33 +176,76 @@ public class CatzDriveTrain
 
     }
 
-    public double getSrxMagLTPosition() //Combine into one method
+    public double getSrxMagPosition(String side) //Combine into one method
     {
-       return srxEncLT.getSensorCollection().getQuadraturePosition();
+        side.toUpperCase();
+
+        double position = 0.0;
+
+        if(side.equals("LT"))
+        {
+        position = srxEncLT.getSensorCollection().getQuadraturePosition();
+        return position;
+        }
+
+        else if(side.equals("RT"))
+        {
+        position = srxEncRT.getSensorCollection().getQuadraturePosition();
+        return position;
+        }
+
+        else
+        {
+        return position;
+        }
     }
 
-    public double getSrxMagRTPosition()
+    public double getIntegratedEncLTPosition(String side) //combine into one method
     {
-        return srxEncRT.getSensorCollection().getQuadraturePosition();
-    }
 
-    public double getIntegratedEncLTPosition() //combine into one method
-    {
-        return drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
-    }
+        double position = 0.0;
+        side.toUpperCase();
 
-    public double getIntegratedEncRTPosition()
-    {
-        return drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
+
+        if(side.equals("LT"))
+        {
+        position = drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
+        return position;
+        }
+
+        else if(side.equals("RT"))
+        {
+        position = drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
+        return position;
+        }
+
+        else
+        {
+        return position;
+        }
     }
     
-    public double getIntegratedEncLTVelocity()
+    public double getIntegratedEncLTVelocity(String side)
     {
-        return drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
-    }
-    public double getIntegratedEncRTVelocity()
-    {
-        return drvTrainMtrCtrlRTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        double velocity = 0.0;
+        side.toUpperCase();
+
+        if(side.equals("LT"))
+        {
+        velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        return velocity;
+        }
+
+        else if(side.equals("RT"))
+        {
+        velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        return velocity;
+        }
+
+        else
+        {
+        return velocity;
+        }
     }
    
     public double getLTEncLinearVelocity() //Change the method
@@ -247,7 +290,7 @@ public class CatzDriveTrain
         //convert to counts/100ms
         encoderVelocity = encoderVelocity * 0.1;
         
-        if(isDrvTrainInLowGear)
+        if(isDrvTrainInHighGear)
         {
             encoderVelocity = encoderVelocity * lowGearRatio * gearRatio;
         }
