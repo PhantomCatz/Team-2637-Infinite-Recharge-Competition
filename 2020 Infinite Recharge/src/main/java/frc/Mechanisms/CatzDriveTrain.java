@@ -5,7 +5,6 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -19,9 +18,6 @@ public class CatzDriveTrain
     private WPI_TalonFX drvTrainMtrCtrlLTBack;
     private WPI_TalonFX drvTrainMtrCtrlRTFrnt;
     private WPI_TalonFX drvTrainMtrCtrlRTBack;
-
-    private static WPI_TalonSRX srxEncLT;
-    private static WPI_TalonSRX srxEncRT;
 
     private final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     private final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -68,12 +64,8 @@ public class CatzDriveTrain
     private final int PID_IDX_CLOSED_LOOP = 0;
     private final int PID_TIMEOUT_MS = 10;
 
-
     public CatzDriveTrain() 
     {
-        srxEncLT = new WPI_TalonSRX(5);
-        srxEncRT = new WPI_TalonSRX(6);
-
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
@@ -175,7 +167,7 @@ public class CatzDriveTrain
         }
         return temp;
     }
-
+    /*
     public double getSrxMagPosition(String side) //Combine into one method
     {
         side.toUpperCase();
@@ -189,7 +181,7 @@ public class CatzDriveTrain
             position = srxEncRT.getSensorCollection().getQuadraturePosition();
         }
         return position;
-    }
+    }*/
 
     public double getIntegratedEncLTPosition(String side) //combine into one method
     {

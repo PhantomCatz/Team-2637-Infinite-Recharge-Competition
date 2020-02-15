@@ -15,6 +15,13 @@ public class CatzShooter
     private final int SHTR_MC_ID_A = 40; 
     private final int SHTR_MC_ID_B = 41;
     
+    private boolean spinningUp;
+    private boolean readyToShoot;
+
+    private Thread shooterThread;
+    private double shooterRPM;
+    private double threshold;
+
     public CatzShooter()
     {
         shtrMtrCtrlA = new WPI_TalonSRX (SHTR_MC_ID_A);
@@ -28,7 +35,7 @@ public class CatzShooter
         shtrMtrCtrlB.follow(shtrMtrCtrlA);
 
         //Configure feedback device for PID loop
-        shtrMtrCtrlA.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 100);
+        shtrMtrCtrlA.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 100);
     
         //Set MC's to coast mode
         shtrMtrCtrlA.setNeutralMode(NeutralMode.Coast);
@@ -41,7 +48,9 @@ public class CatzShooter
         shtrMtrCtrlA.config_kF(0, 0.005);
         shtrMtrCtrlA.config_IntegralZone(0, 0);
 
-    }
+        spinningUp = false;
+        readyToShoot = false;
+    }   
 
     public void setTargetVelocity(double targetVelocity)
     {
@@ -52,27 +61,26 @@ public class CatzShooter
     {
         shtrMtrCtrlA.set(power);
     }
-
+    public double getShooterRPM()
+    {
+        return shooterRPM;
+    }
     public void noPower()
     {
         shtrMtrCtrlA.set(0);
     }
-
     public void oneQuarterPower()
     {
         shtrMtrCtrlA.set(0.25);
     }
-
     public void halfPower()
     {
         shtrMtrCtrlA.set(0.5);
     }
-    
     public void threeQuartersPower()
     {
         shtrMtrCtrlA.set(0.75);
     }
-
     public void maxPower()
     {
         shtrMtrCtrlA.set(1);
@@ -83,4 +91,51 @@ public class CatzShooter
         return shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity();
     }
 
+    public int getDrvTrainRTPosition()
+    {
+        return shtrMtrCtrlA.getSensorCollection().getQuadraturePosition();
+    }
+    public int getDrvTrainRTVelocity()
+    {
+        return shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity();
+    }
+
+    public boolean isShooterSpinningUp()
+    {
+        return spinningUp;
+    }
+    public boolean isShooterReadyToShoot()
+    {
+        return readyToShoot;
+    }
+
+    public void startShooterControlLoop(double targetRPM)
+    {
+        shooterThread = new Thread(() ->
+        {   
+            if((shooterRPM < targetRPM - threshold) || (shooterRPM > targetRPM + threshold))
+            {
+                spinningUp   = true;
+                readyToShoot = false;
+            }
+            else if(shooterRPM > (targetRPM - threshold) && (shooterRPM < (targetRPM + threshold)))
+            {
+                spinningUp   = false;
+                readyToShoot = true;
+            }
+            else
+            {
+                //not using shooter
+                spinningUp   = false;
+                readyToShoot = false;
+            }
+
+        });
+        shooterThread.start();
+    }
+
+    public void stopShooterControlLoop()
+    {
+        shooterThread.interrupt();
+    }
 }

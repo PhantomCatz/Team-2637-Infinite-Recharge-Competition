@@ -27,6 +27,7 @@ public class CatzIntake
 
         //Set roller MC to coast mode
         intakeRollerMtrCtrl.setNeutralMode(NeutralMode.Coast);
+
     }
 
     public void rollIntake()
@@ -37,5 +38,14 @@ public class CatzIntake
     public void deployIntake()
     {
         intakeDeployMtrCtrl.set(ControlMode.PercentOutput, 0.4); // can change this value after testing
+    }
+
+    public int getDrvTrainLTPosition()
+    {
+        return intakeDeployMtrCtrl.getSensorCollection().getQuadraturePosition(); 
+    }
+    public int getDrvTrainLTVelocity()
+    {
+        return intakeDeployMtrCtrl.getSensorCollection().getQuadratureVelocity(); 
     }
 }

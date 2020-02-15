@@ -8,6 +8,11 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import frc.Mechanisms.CatzClimber;
+import frc.Mechanisms.CatzDriveTrain;
+import frc.Mechanisms.CatzIndexer;
+import frc.Mechanisms.CatzIntake;
+import frc.Mechanisms.CatzShooter;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -22,9 +27,21 @@ public class Robot extends TimedRobot
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
    */
+
+  CatzDriveTrain drvTrain;
+  CatzIndexer    indexer;
+  CatzIntake     intake;
+  CatzShooter    shooter;
+  CatzClimber    climber;
+  
   @Override
   public void robotInit() 
   {
+    drvTrain = new CatzDriveTrain();
+    indexer  = new CatzIndexer();
+    intake   = new CatzIntake();
+    shooter  = new CatzShooter();
+    climber  = new CatzClimber();
   }
 
   @Override
