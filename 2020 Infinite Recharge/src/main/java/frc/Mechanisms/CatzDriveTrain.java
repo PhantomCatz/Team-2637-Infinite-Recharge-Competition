@@ -29,8 +29,25 @@ public class CatzDriveTrain
     private static SpeedControllerGroup drvTrainLT;
     private static SpeedControllerGroup drvTrainRT;
 
+<<<<<<< Updated upstream
     final int length = 3;
     double[] currentLimitConfigArray = new double[length];
+=======
+    private static DoubleSolenoid gearShifter;
+
+    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
+    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
+
+    private final double gearRatio     = 11/44;
+    private final double lowGearRatio  = 14/60;
+    private final double highGearRatio = 24/50;
+    
+    private final double integratedEncCountsPerRev = 2048;
+
+    private final double driveWheelRadius = 3;
+
+    public static boolean isDrvTrainInHighGear = true;    //boolean high = true;
+>>>>>>> Stashed changes
 
     final int enabledStatusIndex = 0;
     final int currentLimitIndex = 1;
@@ -98,5 +115,85 @@ public class CatzDriveTrain
     public void retractGearShift()
     {
         gearShifter.set(Value.kForward);
+<<<<<<< Updated upstream
+=======
+        isDrvTrainInHighGear = false;
+    }
+
+    public String getDriveTrainGearMode()
+    {
+        if (isDrvTrainInHighGear)
+            return "High";
+        else
+            return "Low";
+    }
+
+
+    public double getMotorTemperature(int id)
+    {
+        double temp = 0.0;
+        if(id == 1)
+        {
+            temp = drvTrainMtrCtrlLTFrnt.getTemperature();
+        } 
+        else if (id == 2)
+        {   
+            temp = drvTrainMtrCtrlLTBack.getTemperature();
+        }
+        else if (id == 3)
+        {
+            temp = drvTrainMtrCtrlRTFrnt.getTemperature();
+        }
+        else if (id == 4)
+        {
+            temp = drvTrainMtrCtrlRTBack.getTemperature();
+        }
+        return temp;
+    }
+
+    public double getSrxMagPosition(String side) //Combine into one method
+    {
+        side.toUpperCase();
+        double position = 0.0;
+        if(side.equals("LT"))
+        {
+            position = srxEncLT.getSensorCollection().getQuadraturePosition();
+        }
+        else if(side.equals("RT"))
+        {
+            position = srxEncRT.getSensorCollection().getQuadraturePosition();
+        }
+        return position;
+    }
+
+    public double getIntegratedEncLTPosition(String side) //combine into one method
+    {
+        double position = 0.0;
+        side.toUpperCase();
+        if(side.equals("LT"))
+        {
+            position = drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
+        }
+        else if(side.equals("RT"))
+        {
+            position = drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
+        }
+        return position;
+    }
+    
+    public double getIntegratedEncLTVelocity(String side)
+    {
+        double velocity = 0.0;
+        side.toUpperCase();
+        if(side.equals("LT"))
+        {
+            velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        }
+        else if(side.equals("RT"))
+        {
+            velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+        }
+        return velocity;
+>>>>>>> Stashed changes
     }
 }    
