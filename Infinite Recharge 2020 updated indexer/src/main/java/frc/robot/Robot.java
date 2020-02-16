@@ -53,7 +53,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    indexer.showSDS();
+    indexer.showSmartDashboard();
     indexer.runIndexer();
   }
 
@@ -67,26 +67,29 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledInit(){
+    
+    
+    /*//Uncomment this to collect data from the ultrasonic sensor
     dataArray = indexer.getDataArray();
 
     //create txt file
-    String name = "//media//sda1//testData.txt";
+    String fileDirectory = "//media//sda1//testData.txt";
     try {
-      File myObj = new File(name);
+      File myObj = new File(fileDirectory);
       if (myObj.createNewFile()) {
         System.out.println("File created: " + myObj.getName());
       } else {
         System.out.println("File already exists.");
       }
-      System.out.println(name);
+      System.out.println(fileDirectory);
     } catch (IOException e) {
-      System.out.println("An error occurred.");
+      System.out.println("Error creating a new file.");
       e.printStackTrace();
     }
 
     //write to file
     try {
-      FileWriter myWriter = new FileWriter(name, false);
+      FileWriter myWriter = new FileWriter(fileDirectory, false);
 
       for(int i = 0; i < dataArray.size(); i ++){
         myWriter.append("bd: " + dataArray.get(i) + "\n");
@@ -95,11 +98,13 @@ public class Robot extends TimedRobot {
       myWriter.close();
       System.out.println("Successfully wrote to the file.");
     } catch (IOException e) {
-      System.out.println("An error occurred.");
+      System.out.println("Error writing to the file");
       e.printStackTrace();
     }
 
-    System.out.println("Disables Init Run");
+    System.out.println("Disabled Init Run Finished");
+    */
+    indexer.resetData();
     
   }
 

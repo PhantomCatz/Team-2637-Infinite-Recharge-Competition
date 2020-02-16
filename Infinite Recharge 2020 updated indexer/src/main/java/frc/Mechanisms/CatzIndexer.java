@@ -8,38 +8,31 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Ultrasonic;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CatzIndexer {
 
-    private DigitalInput intexerBumpSwitch;
     private DigitalInput indexerEntranceBumpSwitch;
     private Ultrasonic ballSensor;
+    private CANSparkMax indexerMtrCtrl;
 
-    private boolean intexerBumpSwitchState         = false;
     private boolean indexerEntranceBumpSwitchState = false;
     private boolean transferingBallToIndexer       = false;
 
     private boolean shooterRunning     = false;
     private boolean reachedMaxCapaticy = false;
 
-    private CANSparkMax indexerMtrCtrl;
-
-    private final int INTEXER_BUMPSWITCH_DIO_PORT          = 0;
     private final int INDEXER_ENTRANCE_BUMPSWITCH_DIO_PORT = 1;
-
-    private final int INDEXER_MC_CAN_ID = 30;
+    private final int INDEXER_MC_CAN_ID = 4; //change to 20 for the actual robot
 
     private final double beltSpeed = 0.5;
-    
     private double sensorRange = 0;
-
     private int ballCount = 0;
 
     private ArrayList<Double> dataArray;
 
     public CatzIndexer(){
-        intexerBumpSwitch = new DigitalInput(INTEXER_BUMPSWITCH_DIO_PORT);
         indexerEntranceBumpSwitch = new DigitalInput(INDEXER_ENTRANCE_BUMPSWITCH_DIO_PORT);
 
         indexerMtrCtrl = new CANSparkMax(INDEXER_MC_CAN_ID, MotorType.kBrushless);//maybe add current limit
@@ -54,34 +47,33 @@ public class CatzIndexer {
 
     public void runIndexer(){
         dataArray.add(getUltraSonicSensorReading());
-        intexerBumpSwitchState = intexerBumpSwitch.get();
         indexerEntranceBumpSwitchState = getBumpSwitchState();
 
         if(shooterRunning)
         {
-            indexerMtrCtrl.set(beltSpeed);
+            indexerMtrCtrl.set(-beltSpeed);
             ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
         }
         else 
         {
 
             //todo: make everything easier to read and simplify logic to the best of my ability
-            if(!transferingBallToIndexer && !isBallInIntake() && !indexerEntranceBumpSwitchState)
+            if(!isBallInIntake() && !transferingBallToIndexer && !indexerEntranceBumpSwitchState)
             {
                 indexerMtrCtrl.set(0);
             }
             else if(isBallInIntake()){
                 transferingBallToIndexer = true;
                 indexerMtrCtrl.set(beltSpeed);
-                ballCount++;
             }
-            else if (!isBallInIntake() && !indexerEntranceBumpSwitchState && transferingBallToIndexer)
+            else if (!isBallInIntake() && transferingBallToIndexer && !indexerEntranceBumpSwitchState)
             {
                 transferingBallToIndexer = true;
                 indexerMtrCtrl.set(beltSpeed);
             }
             else if (!isBallInIntake() && transferingBallToIndexer && indexerEntranceBumpSwitchState)
             {
+                ballCount ++;
                 transferingBallToIndexer = false;
                 indexerMtrCtrl.set(0);
             }
@@ -91,16 +83,21 @@ public class CatzIndexer {
         {
             reachedMaxCapaticy = true;
         }
+
     }
 
-    public void showSDS(){
+    public void showSmartDashboard(){
         sensorRange = ballSensor.getRangeInches();
         dataArray.add(getUltraSonicSensorReading());
         SmartDashboard.putNumber("Ball Count in Indexer: ", ballCount);
         SmartDashboard.putBoolean("Indexer Reached Max Capacity", reachedMaxCapaticy);
         SmartDashboard.putNumber("Ball Sensor", sensorRange);
-        SmartDashboard.putBoolean("transfering ball", transferingBallToIndexer);
-        SmartDashboard.putBoolean("bump switch state", getBumpSwitchState());
+        SmartDashboard.putBoolean("is Transfering ball", transferingBallToIndexer);
+        SmartDashboard.putBoolean("Indexer bump switch state", getBumpSwitchState());
+    }
+
+    public void resetData(){
+        ballCount = 0;
     }
 
     public void setShooterIsRunning(boolean isRunning){
