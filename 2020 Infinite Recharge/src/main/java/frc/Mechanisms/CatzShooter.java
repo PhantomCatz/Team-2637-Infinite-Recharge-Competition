@@ -1,8 +1,9 @@
 package frc.Mechanisms;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
-
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -21,11 +22,18 @@ public class CatzShooter
     private Thread shooterThread;
     private double shooterRPM;
     private double threshold;
+    private double shooterPowerSum;
+    private int counter;
+    private double kF;
+    private int numOfDataValues;
+
+    private final double GEAR_RATIO = 1;
+    
 
     public CatzShooter()
     {
         shtrMtrCtrlA = new WPI_TalonSRX (SHTR_MC_ID_A);
-        shtrMtrCtrlB = new WPI_VictorSPX(SHTR_MC_ID_B);
+        shtrMtrCtrlB = new WPI_VictorSPX(SHTR_MC_ID_B);        
 
         //Reset configuration
         shtrMtrCtrlA.configFactoryDefault();
@@ -52,18 +60,18 @@ public class CatzShooter
         readyToShoot = false;
     }   
 
-    public void setTargetVelocity(double targetVelocity)
+    public void setTargetRPM(double targetRPM)
     {
+        double targetVelocity = targetRPM * GEAR_RATIO;
         shtrMtrCtrlA.set(targetVelocity);
     }
-
     public void controllableShooterPower(double power)
     {
         shtrMtrCtrlA.set(power);
     }
     public double getShooterRPM()
     {
-        return shooterRPM;
+        return (shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity()*GEAR_RATIO);
     }
     public void noPower()
     {
@@ -117,19 +125,29 @@ public class CatzShooter
             {
                 spinningUp   = true;
                 readyToShoot = false;
+
+                setTargetRPM(targetRPM);
             }
             else if(shooterRPM > (targetRPM - threshold) && (shooterRPM < (targetRPM + threshold)))
             {
                 spinningUp   = false;
                 readyToShoot = true;
-            }
-            else
-            {
-                //not using shooter
-                spinningUp   = false;
-                readyToShoot = false;
-            }
 
+                if(counter < numOfDataValues)
+                {
+                    shooterPowerSum += shtrMtrCtrlA.get();
+                    counter++;
+                }
+                else if(counter == numOfDataValues)
+                {
+                    kF = (shooterPowerSum / ((double)numOfDataValues));
+                }
+                else
+                {
+                    shtrMtrCtrlA.set(kF);
+                }
+
+            }
         });
         shooterThread.start();
     }
@@ -137,5 +155,7 @@ public class CatzShooter
     public void stopShooterControlLoop()
     {
         shooterThread.interrupt();
+        spinningUp = false;
+        readyToShoot = false;
     }
 }

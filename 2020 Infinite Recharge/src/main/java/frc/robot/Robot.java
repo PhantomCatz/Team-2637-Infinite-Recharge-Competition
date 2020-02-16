@@ -8,6 +8,7 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import frc.Mechanisms.CatzClimber;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIndexer;
@@ -34,6 +35,9 @@ public class Robot extends TimedRobot
   CatzShooter    shooter;
   CatzClimber    climber;
   
+  XboxController drv;
+  XboxController aux;
+
   @Override
   public void robotInit() 
   {
@@ -42,36 +46,55 @@ public class Robot extends TimedRobot
     intake   = new CatzIntake();
     shooter  = new CatzShooter();
     climber  = new CatzClimber();
+
+    drv = new XboxController(0);
+    aux = new XboxController(1);
   }
 
   @Override
   public void autonomousInit() 
   {
+
   }
 
   @Override
   public void autonomousPeriodic() 
   {
+
   }
 
   @Override
   public void teleopInit() 
   {
+
   }
 
   @Override
   public void teleopPeriodic()
-{
+  {
   }
 
   @Override
   public void testInit() 
   {
+
   }
 
   @Override
   public void testPeriodic() 
   {
+
   }
 
+  @Override
+  public void disabledInit()
+  {
+
+  }
+
+  @Override
+  public void disabledPeriodic()
+  {
+
+  }
 }
