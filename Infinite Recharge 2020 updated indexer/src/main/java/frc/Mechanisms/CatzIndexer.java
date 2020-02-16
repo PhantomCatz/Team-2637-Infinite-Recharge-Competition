@@ -8,7 +8,6 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Ultrasonic;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CatzIndexer {
@@ -51,12 +50,11 @@ public class CatzIndexer {
 
         if(shooterRunning)
         {
-            indexerMtrCtrl.set(-beltSpeed);
+            indexerMtrCtrl.set(beltSpeed);
             ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
         }
         else 
         {
-
             //todo: make everything easier to read and simplify logic to the best of my ability
             if(!isBallInIntake() && !transferingBallToIndexer && !indexerEntranceBumpSwitchState)
             {
