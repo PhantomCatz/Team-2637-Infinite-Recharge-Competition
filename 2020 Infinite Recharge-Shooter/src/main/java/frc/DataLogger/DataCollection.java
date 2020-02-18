@@ -48,7 +48,7 @@ public class DataCollection
                                                            "dt-r-iev,dt-r-pwr,dt-r-mcI,dt-r-cle,dt-r-errD,dt-r-iAcc";
     private final String LOG_HDR_DRV_DISTANCE_PID = "Undefined";
     private final String LOG_HDR_DRV_TURN_PID = "Undefined";
-    private final String LOG_HDR_SHOOTER = "Undefined";
+    private final String LOG_HDR_SHOOTER = "time, pdp-v, shtr-A-v, shtr-B-v, shtr-A-I, shtr-B-I, shtr-A-T, shtr-B-T, shtr-fwsv";
 
 
     public String logStr;
@@ -163,8 +163,22 @@ public class DataCollection
                 data10 = Robot.driveTrain.getSrxMagPosition("RT");
             
                 break;
-
+                
             case LOG_ID_SHOOTER:
+                data1 = Robot.pdp.getVoltage();
+
+                data2 = Robot.Shooter.shtrMtrCtrlA.getMotorOutputVoltage();
+                data3 = Robot.Shooter.shtrMtrCtrlB.getMotorOutputVoltage();
+
+                data4 = Robot.Shooter.shtrMtrCtrlA.getStatorCurrent();
+                data5 = Robot.Shooter.shtrMtrCtrlB.getStatorCurrent();
+
+                data6 = Robot.Shooter.shtrMtrCtrlA.getTemperature();
+                data7 = Robot.Shooter.shtrMtrCtrlB.getTemperature();
+
+                data8 = Robot.Shooter.getFlywheelShaftVelocity();
+
+                data9 = Math.abs(Robot.Shooter.shtrMtrCtrlA.get());
                 break;
 
             default :

@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -34,7 +35,7 @@ public class Robot extends TimedRobot
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
-  public static CatzShooter    shooter;
+  public static CatzShooter    Shooter;
   public static CatzClimber    climber;
 
   public static DataCollection dataCollection;
@@ -51,6 +52,21 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
+  public boolean testFlag = false;
+
+
+  public static double testPower = 0;
+
+  double c;
+
+  private boolean readyToFire =     false;
+
+  private final int RPM_RANGE_MIN = 4100;
+  private final int RPM_RANGE_MAX = 4300;
+
+  private final double TARGET_VELOCITY = 20000;
+
+  int testing = 0;
 
   @Override
   public void robotInit() 
@@ -69,11 +85,22 @@ public class Robot extends TimedRobot
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
     XboxAux = new XboxController(XBOX_AUX_PORT);
+
+    driveTrain = new CatzDriveTrain();
+    indexer = new CatzIndexer();
+    Shooter = new CatzShooter();
+
+    
+
   }
 
   @Override
   public void robotPeriodic() 
   {
+  
+    Shooter.displaySmartDashboard();
+
+     //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
 
   @Override
@@ -81,16 +108,16 @@ public class Robot extends TimedRobot
   {
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
     dataCollection.startDataCollection();
 
     autonomousTimer.start();
-    while(autonomousTimer.get() <2)
+  /*  while(autonomousTimer.get() <2)
     {
       driveTrain.arcadeDrive(1, 0);
     }
 
-    driveTrain.arcadeDrive(0, 0);
+    driveTrain.arcadeDrive(0, 0); */
   }
 
   @Override
@@ -103,25 +130,76 @@ public class Robot extends TimedRobot
   {
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
     dataCollection.startDataCollection();
   }
 
   @Override
   public void teleopPeriodic()
   {
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-  }
+    if(xboxDrv.getBumper(Hand.kLeft)){
+     testing = Shooter.SHOOT_FROM_START_LINE;
+     System.out.println("Left bumper");
+    }
 
+    if(xboxDrv.getBumper(Hand.kRight)){
+      testing = -1;
+      System.out.println("Right Bumper");
+    }
+    Shooter.setShooterVelocity(testing);
+   
+    
+     /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    if(xboxDrv.getBumper(Hand.kLeft)){
+      driveTrain.retractGearShift();
+    }
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.deployGearShift();
+    }*/
+    
+    
+    if (xboxDrv.getAButton())
+    {
+     Shooter.shooterPower = 0.7 ;
+     Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
+     //Shooter.setTargetVelocity(20000);
+    }
+
+    else if (xboxDrv.getXButton())
+    {
+      Shooter.shooterPower += 0.02;
+      Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
+      Timer.delay(0.5);
+    }
+    
+    else if (xboxDrv.getYButton())
+    {
+      Shooter.shooterPower -= 0.02;
+      Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
+      Timer.delay(0.5);
+    }
+
+    else if (xboxDrv.getBButton())
+    {
+      Shooter.shtrMtrCtrlA.set(0);
+    }
+  }
+  
+    //Intake.rollIntake(xboxDrv.getY(Hand.kLeft));
+   // Intake.deployIntake(xboxDrv.getY(Hand.kRight));
+  
   @Override
   public void disabledInit() 
   {
     dataCollection.stopDataCollection();
     
+    /*** 
       for (int i = 0; i <dataArrayList.size();i++)
       {
          System.out.println(dataArrayList.get(i));
       }  
+    ***/
 
     try 
     {

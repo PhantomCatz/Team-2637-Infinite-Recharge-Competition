@@ -12,73 +12,81 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class CatzIndexer 
 {
-    private DigitalInput indexerEntranceBumpSwitch;
-
+    private DigitalInput indexerEntranceSwitch;
+    private DigitalInput indexerExitSwitch;
     private Ultrasonic   ballSensor;
+
+    private final int INDEXER_ENTRANCE_SWITCH_DIO_PORT = 3;
+    private final int INDEXER_EXIT_SWITCH_DIO_PORT = 4;
+    private final int BALL_SENSOR_INPUT_DIO_PORT = 5;
+    private final int BALL_SENSOR_OUTPUT_DIO_PORT = 6;
 
     private CANSparkMax  indexerMtrCtrl;
 
-    private boolean indexerEntranceBumpSwitchState = false;
-    private boolean transferingBallToIndexer       = false;
-
-    private boolean shooterRunning     = false;
-    private boolean reachedMaxCapaticy = false;
-
-    private final int INDEXER_ENTRANCE_BUMPSWITCH_DIO_PORT = 1;
-
     public  final int INDEXER_MC_PDP_PORT = 10;
     private final int INDEXER_MC_CAN_ID =20;
+    private final int INDEXER_MC_CURRENT_LIMIT = 60; //TBD
 
-    private final int BALL_SENSOR_INPUT_DIO_PORT = 4;
-    private final int BALL_SENSOR_OUTPUT_DIO_PORT = 5;
+    private boolean indexerEntranceSwitchState = false;
+    private boolean indexerExitSwitchState = false;
 
-    private final double beltSpeed = 0.5;
-    private double sensorRange = 0;
+    private boolean transferingBallToIndexer = false;
+
+    private boolean shooterRunning     = false;
+    private boolean reachedMaxCapacity = false;
+
+    private final double BELT_SPEED = 0.5;
+    private final double BALL_IN_RANGE_THRESHOLD = 5.0;
+    private double sensorRange = 0.0;
     private int ballCount = 0;
 
-    private ArrayList<Double> dataArray;
+    private final boolean OPEN = false;
+    private final boolean CLOSED = true; 
 
     public CatzIndexer()
     {
-        indexerEntranceBumpSwitch = new DigitalInput(INDEXER_ENTRANCE_BUMPSWITCH_DIO_PORT);
+        indexerEntranceSwitch = new DigitalInput(INDEXER_ENTRANCE_SWITCH_DIO_PORT);
+        indexerExitSwitch     = new DigitalInput(INDEXER_EXIT_SWITCH_DIO_PORT);
 
-        indexerMtrCtrl = new CANSparkMax(INDEXER_MC_CAN_ID, MotorType.kBrushless);//maybe add current limit
+        indexerMtrCtrl = new CANSparkMax(INDEXER_MC_CAN_ID, MotorType.kBrushless);
+
         indexerMtrCtrl.restoreFactoryDefaults();
         indexerMtrCtrl.setIdleMode(IdleMode.kBrake);
+        indexerMtrCtrl.setSmartCurrentLimit(INDEXER_MC_CURRENT_LIMIT);
 
         ballSensor = new Ultrasonic(BALL_SENSOR_INPUT_DIO_PORT,BALL_SENSOR_OUTPUT_DIO_PORT);//(input,output)
         ballSensor.setAutomaticMode(true);
 
-        dataArray = new ArrayList<>();
     }
 
     public void runIndexer()
     {
-        dataArray.add(getUltraSonicSensorReading());
-        indexerEntranceBumpSwitchState = getBumpSwitchState();
+        indexerEntranceSwitchState = indexerEntranceSwitch.get();
+        indexerExitSwitchState     = indexerExitSwitch.get();
 
         if(shooterRunning)
         {
-            indexerMtrCtrl.set(beltSpeed);
+            indexerMtrCtrl.set(BELT_SPEED);
             ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
         }
         else 
         {
             //todo: make everything easier to read and simplify logic to the best of my ability
-            if(!isBallInIntake() && !transferingBallToIndexer && !indexerEntranceBumpSwitchState)
+            if(!isBallInIntexer() && !transferingBallToIndexer && !indexerEntranceSwitchState)
             {
                 indexerMtrCtrl.set(0);
             }
-            else if(isBallInIntake()){
-                transferingBallToIndexer = true;
-                indexerMtrCtrl.set(beltSpeed);
-            }
-            else if (!isBallInIntake() && transferingBallToIndexer && !indexerEntranceBumpSwitchState)
+            else if(isBallInIntexer())
             {
                 transferingBallToIndexer = true;
-                indexerMtrCtrl.set(beltSpeed);
+                indexerMtrCtrl.set(BELT_SPEED);
             }
-            else if (!isBallInIntake() && transferingBallToIndexer && indexerEntranceBumpSwitchState)
+            else if (!isBallInIntexer() && transferingBallToIndexer && !indexerEntranceSwitchState)
+            {
+                transferingBallToIndexer = true;
+                indexerMtrCtrl.set(BELT_SPEED);
+            }
+            else if (!isBallInIntexer() && transferingBallToIndexer && indexerEntranceSwitchState)
             {
                 ballCount ++;
                 transferingBallToIndexer = false;
@@ -88,7 +96,7 @@ public class CatzIndexer
 
         if(ballCount >= 5)
         {
-            reachedMaxCapaticy = true;
+            reachedMaxCapacity = true;
         }
 
     }
@@ -96,12 +104,11 @@ public class CatzIndexer
     public void showSmartDashboard()
     {
         sensorRange = ballSensor.getRangeInches();
-        dataArray.add(getUltraSonicSensorReading());
         SmartDashboard.putNumber("Ball Count in Indexer: ", ballCount);
-        SmartDashboard.putBoolean("Indexer Reached Max Capacity", reachedMaxCapaticy);
+        SmartDashboard.putBoolean("Indexer Reached Max Capacity", reachedMaxCapacity);
         SmartDashboard.putNumber("Ball Sensor", sensorRange);
         SmartDashboard.putBoolean("is Transfering ball", transferingBallToIndexer);
-        SmartDashboard.putBoolean("Indexer bump switch state", getBumpSwitchState());
+       // SmartDashboard.putBoolean("Indexer bump switch state", getBumpSwitchState());
     }
 
     public void resetData()
@@ -121,12 +128,7 @@ public class CatzIndexer
 
     public boolean reachedMaxCapacity()
     {
-        return reachedMaxCapaticy;
-    }
-
-    public boolean getBumpSwitchState()
-    {
-        return !indexerEntranceBumpSwitch.get();
+        return reachedMaxCapacity;
     }
 
     public double getUltraSonicSensorReading()
@@ -134,10 +136,11 @@ public class CatzIndexer
         return ballSensor.getRangeInches();
     }
 
-    public boolean isBallInIntake()
+    public boolean isBallInIntexer()
     {
         sensorRange = ballSensor.getRangeInches();
-        if (sensorRange < 5)
+
+        if (sensorRange < BALL_IN_RANGE_THRESHOLD)
         {
             return true;
         }
@@ -145,11 +148,6 @@ public class CatzIndexer
         {
             return false;
         }
-    }
-
-    public ArrayList<Double> getDataArray()
-    {
-        return dataArray;
     }
 
 }

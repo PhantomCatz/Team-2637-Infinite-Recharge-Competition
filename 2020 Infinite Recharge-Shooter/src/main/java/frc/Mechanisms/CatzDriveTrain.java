@@ -34,7 +34,7 @@ public class CatzDriveTrain
     public final int DRV_TRN_RT_FRNT_MC_PDP_PORT = 15;
     public final int DRV_TRN_RT_BACK_MC_PDP_PORT = 14;
 
-    private DifferentialDrive drvTrainDifferentialDrive;
+    //private DifferentialDrive drvTrainDifferentialDrive;
 
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
@@ -113,7 +113,7 @@ public class CatzDriveTrain
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
+        //drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM, DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM);
 
@@ -142,10 +142,10 @@ public class CatzDriveTrain
          drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
     }
 
-    public void arcadeDrive(double power, double rotation)
+ /*   public void arcadeDrive(double power, double rotation)
     {
         drvTrainDifferentialDrive.arcadeDrive(power, rotation);
-    }
+    } */
 
     public void shiftToHighGear()
     {
@@ -236,6 +236,9 @@ public class CatzDriveTrain
     {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
         drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -targetVelocity);
+        drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
+        drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
+
     }
 
     public void setIntegratedEncPosition(int position)

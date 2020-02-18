@@ -1,0 +1,186 @@
+package frc.Mechanisms;
+
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+
+public class CatzShooter
+{
+    public WPI_TalonSRX shtrMtrCtrlA;
+    public WPI_TalonSRX shtrMtrCtrlB;
+
+    private final int SHTR_MC_ID_A = 1; //40
+    private final int SHTR_MC_ID_B = 2;//41
+    
+    final double COUNTS_PER_REVOLUTION      = 4096.0;
+    final double SEC_TO_MIN                 = 60.0;
+    final double ENCODER_SAMPLE_RATE_MSEC   = 100.0;
+    final double ENCODER_SAMPLE_PERIOD_MSEC = (1.0 / ENCODER_SAMPLE_RATE_MSEC);
+    final double MSEC_TO_SEC                = 1000.0;
+    final double FLYWHEEL_GEAR_REDUCTION    = 3.0;
+
+    final double CONV_QUAD_VELOCITY_TO_RPM = ( ((ENCODER_SAMPLE_PERIOD_MSEC * MSEC_TO_SEC * SEC_TO_MIN) / COUNTS_PER_REVOLUTION));
+
+    public final int SHOOT_FROM_TARGET_ZONE = 0;
+    public final int SHOOT_FROM_START_LINE = 1;
+   
+    final double SHOOTER_TARGET_VEL_TARGET_ZONE_RPM = 4000.0; //TBD
+    final double SHOOTER_TARGET_VEL_START_LINE_RPM  = 4300.0; //RPM
+ 
+    final double SHOOTER_BANG_BANG_MAX_RPM_OFFSET = 50.0; 
+    final double SHOOTER_BANG_BANG_MIN_RPM_OFFSET = 50.0;
+  
+    final double SHOOTER_BANG_BANG_START_LINE_MAX_POWER = 0.90;
+    final double SHOOTER_BANG_BANG_START_LINE_MIN_POWER = 0.50;
+
+    final double SHOOTER_BANG_BANG_TARGET_ZONE_MAX_POWER = 0.70;
+    final double SHOOTER_BANG_BANG_TARGET_ZONE_MIN_POWER = 0.50;
+
+    public double targetRPM = 0.0;
+    public double shooterPower = 0.0;
+
+    
+    
+
+    public CatzShooter()
+    {
+        shtrMtrCtrlA = new WPI_TalonSRX(SHTR_MC_ID_A);
+        shtrMtrCtrlB = new WPI_TalonSRX(SHTR_MC_ID_B);
+
+        //Reset configuration
+        shtrMtrCtrlA.configFactoryDefault();
+        shtrMtrCtrlB.configFactoryDefault();
+
+        //Set MC B to follow MC A
+       shtrMtrCtrlB.follow(shtrMtrCtrlA);
+
+        //Configure feedback device for PID loop
+        shtrMtrCtrlA.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 100);
+
+        shtrMtrCtrlA.getSensorCollection().setQuadraturePosition(0,100);
+
+        //Set MC's to coast mode
+        shtrMtrCtrlA.setNeutralMode(NeutralMode.Coast);
+        shtrMtrCtrlB.setNeutralMode(NeutralMode.Coast);
+
+        //Configure PID constants
+        shtrMtrCtrlA.config_kP(0, 0.005);
+        shtrMtrCtrlA.config_kI(0, 0.0);
+        shtrMtrCtrlA.config_kD(0, 0.0);
+        shtrMtrCtrlA.config_kF(0, 0.008); //shtrMtrCtrlA.config_kF(0, 0.008);
+        shtrMtrCtrlA.config_IntegralZone(0, 0);
+    }
+
+    public void setTargetVelocity(double targetVelocity)  //TBD
+    {
+        shtrMtrCtrlA.set(ControlMode.Velocity, targetVelocity);
+    }
+
+
+
+
+    public void shooterFlyWheelDisable()
+    {
+        shtrMtrCtrlA.set(0);
+    }
+
+
+
+    public double getFlywheelShaftPosition()
+    {
+        return shtrMtrCtrlA.getSensorCollection().getQuadraturePosition();
+    }
+
+    public double getFlywheelShaftVelocity()
+    {
+        return (Math.abs((double) shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity()) * CONV_QUAD_VELOCITY_TO_RPM); 
+        //return ((double) shtrMtrCtrlA.getSensorCollection().getPulseWidthVelocity()); 
+    }
+
+
+    
+
+    public void setShooterVelocity(int shootingPosition)
+    {
+        boolean validLocation = true;
+        double flywheelShaftVelocity2 = -1.0;
+        double minRPM = 0.0;
+        double maxRPM = 0.0;
+        double minPower = 0.0;
+        double maxPower = 0.0;
+
+        System.out.println("***** SET SHOOTER VELOITY *****");
+        
+        flywheelShaftVelocity2 = getFlywheelShaftVelocity();
+        
+
+        switch (shootingPosition)
+        {
+            case SHOOT_FROM_TARGET_ZONE:
+            
+                targetRPM= SHOOTER_TARGET_VEL_TARGET_ZONE_RPM;
+                minRPM = targetRPM - SHOOTER_BANG_BANG_MIN_RPM_OFFSET;
+                maxRPM = targetRPM + SHOOTER_BANG_BANG_MAX_RPM_OFFSET;
+                minPower = SHOOTER_BANG_BANG_TARGET_ZONE_MIN_POWER;
+                maxPower = SHOOTER_BANG_BANG_TARGET_ZONE_MAX_POWER;
+                System.out.println("Shoot from target zone");
+                break;
+
+            case SHOOT_FROM_START_LINE:
+
+                targetRPM = SHOOTER_TARGET_VEL_START_LINE_RPM ;
+                minRPM = targetRPM - SHOOTER_BANG_BANG_MIN_RPM_OFFSET;
+                maxRPM = targetRPM + SHOOTER_BANG_BANG_MAX_RPM_OFFSET;
+                minPower = SHOOTER_BANG_BANG_START_LINE_MIN_POWER;
+                maxPower = SHOOTER_BANG_BANG_START_LINE_MAX_POWER;
+                System.out.println("Shoot from start line");
+                break;
+
+
+            default: 
+                validLocation = false;
+                System.out.println("INVALID");
+                break;
+
+        }
+
+        if (validLocation == true) {
+            System.out.println(maxRPM);
+            System.out.println(minRPM);
+            System.out.println(flywheelShaftVelocity2);
+       
+             if (flywheelShaftVelocity2 > maxRPM) {
+                System.out.print("Changing to Min\n");
+                shooterPower = minPower;
+        
+             }
+            else if(flywheelShaftVelocity2 < minRPM) {
+                System.out.print("Changing to Max\n");
+                shooterPower = maxPower;
+            }
+            shtrMtrCtrlA.set(shooterPower);
+            System.out.println(shooterPower);
+        }
+        else{
+            shooterPower = 0.0;
+            shtrMtrCtrlA.set(shooterPower);
+        }
+    }
+
+ 
+  
+   
+
+    public void displaySmartDashboard(){
+        SmartDashboard.putNumber("RPM",             getFlywheelShaftVelocity() );
+        SmartDashboard.putNumber("Power",           shooterPower);
+        SmartDashboard.putNumber("Target Velocity", targetRPM);
+        SmartDashboard.putNumber("ENC Position",    getFlywheelShaftPosition());
+    }
+
+}
