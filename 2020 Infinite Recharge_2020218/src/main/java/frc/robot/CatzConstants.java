@@ -7,6 +7,7 @@ public class CatzConstants
     public static final double HALF_ROBOT_LENGTH = ROBOT_LENGTH/2;
     public static final double HALF_ROBOT_WIDTH = ROBOT_WIDTH/2;
 
+    //xbox pov is measured in degrees starting at 0
     public static final int XBOX_POV_UP    = 0;
     public static final int XBOX_POV_UP_RT = 45;
     public static final int XBOX_POV_RT    = 90;
