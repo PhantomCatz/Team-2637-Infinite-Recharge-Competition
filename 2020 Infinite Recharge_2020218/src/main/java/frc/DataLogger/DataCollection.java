@@ -53,6 +53,8 @@ public class DataCollection
 
     public String logStr;
 
+    public static Timer dataCollectionTimer;
+
     public void setLogDataID(final int dataID)
     {
         logDataID = dataID;
@@ -232,6 +234,13 @@ public class DataCollection
 
             pw.close();
         }
+    }
+    public void dataInit()
+    {
+        dataCollectionTimer.reset();
+        dataCollectionTimer.start();
+        setLogDataID(LOG_ID_SHOOTER);
+        startDataCollection();
     }
 }
 

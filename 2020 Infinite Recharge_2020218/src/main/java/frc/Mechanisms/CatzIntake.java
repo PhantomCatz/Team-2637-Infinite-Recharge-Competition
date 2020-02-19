@@ -32,13 +32,13 @@ public class CatzIntake
         intakeRollerMtrCtrl.setNeutralMode(NeutralMode.Coast);
     }
 
-    public void rollIntake()
+    public void rollIntake(double power)
     {
-        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, -0.72); // can change this value after testing
+        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, power); // can change this value after testing
     }
 
-    public void deployIntake()
+    public void deployIntake(double power)
     {
-        intakeDeployMtrCtrl.set(ControlMode.PercentOutput, 0.4); // can change this value after testing
+        intakeDeployMtrCtrl.set(ControlMode.PercentOutput, power); // can change this value after testing
     }
 }
