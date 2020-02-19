@@ -5,13 +5,13 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import frc.robot.Robot;
 
 public class CatzDriveTrain
 {
@@ -19,6 +19,9 @@ public class CatzDriveTrain
     public WPI_TalonFX drvTrainMtrCtrlLTBack;
     public WPI_TalonFX drvTrainMtrCtrlRTFrnt;
     public WPI_TalonFX drvTrainMtrCtrlRTBack;
+
+    private static WPI_TalonSRX srxEncLT;
+    private static WPI_TalonSRX srxEncRT;
 
     public final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     public final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -33,8 +36,8 @@ public class CatzDriveTrain
 
     private DifferentialDrive drvTrainDifferentialDrive;
 
-    private SpeedControllerGroup drvTrainLT;
-    private SpeedControllerGroup drvTrainRT;
+    public SpeedControllerGroup drvTrainLT;
+    public SpeedControllerGroup drvTrainRT;
 
     private DoubleSolenoid gearShifter;
 
@@ -49,7 +52,7 @@ public class CatzDriveTrain
 
     private final double driveWheelRadius = 3;
 
-    private boolean isDrvTrainInHighGear = true;    
+    private boolean isDrvTrainInHighGear = true;    //boolean high = true;
 
     private AnalogInput pressureSensor;
 
@@ -58,7 +61,7 @@ public class CatzDriveTrain
     private final double PRESSURE_SENSOR_VOLTAGE_OFFSET = 0.5;
 
     private final double PRESSURE_SENSOR_VOLATGE_RANGE = 4.5; //4.5-0.5
-    private final double MAX_PRESSURE = 200.0;
+    private final double MAX_PRESSURE = 200;
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
@@ -73,6 +76,9 @@ public class CatzDriveTrain
 
     public CatzDriveTrain() 
     {
+        srxEncLT = new WPI_TalonSRX(5);
+        srxEncRT = new WPI_TalonSRX(6);
+
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
@@ -181,11 +187,11 @@ public class CatzDriveTrain
         double position = 0.0;
         if(side.equals("LT"))
         {
-            position = Robot.climber.climbMtrCtrlA.getEncoder().getPosition(); //LT encoder is connnected to climber MC A
+            position = srxEncLT.getSensorCollection().getQuadraturePosition();
         }
         else if(side.equals("RT"))
         {
-            position = Robot.climber.climbMtrCtrlB.getEncoder().getPosition(); //RT encoder is connected to climber MC B
+            position = srxEncRT.getSensorCollection().getQuadraturePosition();
         }
         return position;
     }
@@ -230,9 +236,6 @@ public class CatzDriveTrain
     {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
         drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -targetVelocity);
-        drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
-        drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
-
     }
 
     public void setIntegratedEncPosition(int position)

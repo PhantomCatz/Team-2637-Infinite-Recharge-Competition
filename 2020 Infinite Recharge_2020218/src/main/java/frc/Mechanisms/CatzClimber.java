@@ -9,8 +9,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 public class CatzClimber
 {
-    public CANSparkMax climbMtrCtrlA; 
-    public CANSparkMax climbMtrCtrlB;
+    private CANSparkMax climbMtrCtrlA; 
+    private CANSparkMax climbMtrCtrlB;
 
     private WPI_VictorSPX lightsaber;
 
@@ -22,7 +22,7 @@ public class CatzClimber
 
     private int LIGHTSABER_MC_CAN_ID = 50;
 
-    public final static int LIGHTSABER_MC_PDP_PORT = 7;
+    public final static int LIGHTSABER_MC_PDP_PORT = 5;
 
     final private int CLIMBER_CURRENT_LIMIT = 80;
     

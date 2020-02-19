@@ -35,7 +35,7 @@ public class Robot extends TimedRobot
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
-  public static CatzShooter    shooter;
+  public static CatzShooter    Shooter;
   public static CatzClimber    climber;
 
   public static DataCollection dataCollection;
@@ -52,111 +52,92 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
+  
+  int testing = Shooter.SHOOT_IDLE_MODE;
 
-  public boolean testFlag = false;
-
-  private final int RPM_RANGE_MIN = 4100;
-  private final int RPM_RANGE_MAX = 4300;
 
   @Override
   public void robotInit() 
   {
-    pdp = new PowerDistributionPanel();
-
-    dataArrayList = new ArrayList<CatzLog>();
-
-    dataCollection = new DataCollection();
-
+    dataArrayList       = new ArrayList<CatzLog>();
+    dataCollection      = new DataCollection();
     dataCollectionTimer = new Timer();
 
-    autonomousTimer = new Timer();
+    autonomousTimer     = new Timer();
     
     dataCollection.dataCollectionInit(dataArrayList);
+
+    pdp = new PowerDistributionPanel();
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
     XboxAux = new XboxController(XBOX_AUX_PORT);
 
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
-    shooter    = new CatzShooter();
-    intake     = new CatzIntake();
-    climber    = new CatzClimber();
+    Shooter    = new CatzShooter();
 
   }
 
   @Override
   public void robotPeriodic() 
   {
-    indexer.runIndexer2();
-    indexer.showSmartDashboard();
+  
+    Shooter.displaySmartDashboard();
 
-    SmartDashboard.putNumber("RPM", shooter.getFlywheelShaftVelocity());
-    SmartDashboard.putNumber("Power", shooter.getShooterPower());
-    SmartDashboard.putNumber("Target Velocity", shooter.getTargetVelocity());
+     //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
+
 
   @Override
   public void autonomousInit() 
   {
-    dataCollectionTimer.reset();
-    dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
-    dataCollection.startDataCollection();
+    dataCollection.dataInit();
+
+
+    autonomousTimer.start();
+  /*  while(autonomousTimer.get() <2)
+    {
+      driveTrain.arcadeDrive(1, 0);
+    }
+
+    driveTrain.arcadeDrive(0, 0); */
   }
 
   @Override
   public void autonomousPeriodic() 
   {
+    dataCollection.dataInit();
   }
 
   @Override
   public void teleopInit() 
   {
-    dataCollectionTimer.reset();
-    dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
-    dataCollection.startDataCollection();
+    dataCollection.dataInit();
+    
   }
 
   @Override
   public void teleopPeriodic()
   {
+  
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
-    if(xboxDrv.getBumper(Hand.kLeft)){
-      driveTrain.shiftToHighGear();
-    }
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      driveTrain.shiftToLowGear();
-    }
-
-    if(xboxDrv.getXButton()){
-      shooter.oneQuarterPower();
-    }
-    if(xboxDrv.getAButton()){
-      testFlag = true;
-      
-    }
-    else if(xboxDrv.getBButton()){
-      shooter.stopMotor();
-    }
-    if (testFlag) {
-      shooter.testShoot();
-    }
   }
+  
+    //Intake.rollIntake(xboxDrv.getY(Hand.kLeft));
+   // Intake.deployIntake(xboxDrv.getY(Hand.kRight));
   
   @Override
   public void disabledInit() 
   {
     dataCollection.stopDataCollection();
-
-    indexer.printTraceData();
     
-    /*  for (int i = 0; i <dataArrayList.size();i++)
+    /*** 
+      for (int i = 0; i <dataArrayList.size();i++)
       {
          System.out.println(dataArrayList.get(i));
-      }  */
+      }  
+    ***/
 
     try 
     {

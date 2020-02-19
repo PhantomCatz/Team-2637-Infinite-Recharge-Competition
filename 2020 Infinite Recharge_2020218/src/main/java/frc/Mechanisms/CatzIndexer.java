@@ -146,6 +146,8 @@ public class CatzIndexer
                 if(sensorRange < BALL_IN_RANGE_THRESHOLD)
                 { 
                     indexerArrayList.add(21.0);
+                    indexTime2.stop();                   //Indexer Motor Timeout
+                    indexTime2.reset();                  //Indexer Motor Timeout
                     transferingBallToIndexer = true;
                     indexerMtrCtrl.set(BELT_SPEED);
                 }
@@ -167,21 +169,20 @@ public class CatzIndexer
                                 reachedMaxCapacity = true;
                             }
                         }
+                        indexTime2.start();                     //Indexer Motor Timeout
+
+                        if(indexTime2.get() > 2 && indexerEntranceSwitchState == BALL_NOT_PRESENT)
+                        {
+                            transferingBallToIndexer = false;
+                            indexerMtrCtrl.set(0.0);
+                        }
                     }
                 }
             }           
         }
 
         indexerArrayList.add(9999.0);
-        /*if(transferingBallToIndexer == true)
-        {
-            Timer.delay(5.0);
-            if(transferingBallToIndexer == true)
-            {
-                transferingBallToIndexer = false;
-                indexerMtrCtrl.set(0);
-            }
-        }*/
+
     }
 
     public void showSmartDashboard()
