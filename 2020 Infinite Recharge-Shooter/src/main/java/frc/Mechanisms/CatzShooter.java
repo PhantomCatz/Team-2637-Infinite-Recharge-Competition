@@ -4,18 +4,21 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+
+
 
 public class CatzShooter
 {
     public WPI_TalonSRX shtrMtrCtrlA;
     public WPI_TalonSRX shtrMtrCtrlB;
 
-    private final int SHTR_MC_ID_A = 1; //40
-    private final int SHTR_MC_ID_B = 2;//41
+    private final int SHTR_MC_ID_A = 1; //TBD 40
+    private final int SHTR_MC_ID_B = 2; //41
     
     final double COUNTS_PER_REVOLUTION      = 4096.0;
     final double SEC_TO_MIN                 = 60.0;
@@ -26,23 +29,33 @@ public class CatzShooter
 
     final double CONV_QUAD_VELOCITY_TO_RPM = ( ((ENCODER_SAMPLE_PERIOD_MSEC * MSEC_TO_SEC * SEC_TO_MIN) / COUNTS_PER_REVOLUTION));
 
-    public final int SHOOT_FROM_TARGET_ZONE = 0;
-    public final int SHOOT_FROM_START_LINE = 1;
-   
+    public static final int SHOOT_IDLE_MODE        = 0;
+    public static final int SHOOT_FROM_TARGET_ZONE = 1;
+    public static final int SHOOT_FROM_START_LINE  = 2;
+
+    
     final double SHOOTER_TARGET_VEL_TARGET_ZONE_RPM = 4000.0; //TBD
-    final double SHOOTER_TARGET_VEL_START_LINE_RPM  = 4300.0; //RPM
+    final double SHOOTER_TARGET_VEL_START_LINE_RPM  = 5000.0; //RPM
  
-    final double SHOOTER_BANG_BANG_MAX_RPM_OFFSET = 50.0; 
-    final double SHOOTER_BANG_BANG_MIN_RPM_OFFSET = 50.0;
+    final double SHOOTER_BANG_BANG_MAX_RPM_OFFSET = 5.0; 
+    final double SHOOTER_BANG_BANG_MIN_RPM_OFFSET = 5.0;
   
-    final double SHOOTER_BANG_BANG_START_LINE_MAX_POWER = 0.90;
-    final double SHOOTER_BANG_BANG_START_LINE_MIN_POWER = 0.50;
+    final double SHOOTER_BANG_BANG_START_LINE_MAX_POWER = 0.95;
+    final double SHOOTER_BANG_BANG_START_LINE_MIN_POWER = 0.45;
 
-    final double SHOOTER_BANG_BANG_TARGET_ZONE_MAX_POWER = 0.70;
-    final double SHOOTER_BANG_BANG_TARGET_ZONE_MIN_POWER = 0.50;
+    final double SHOOTER_BANG_BANG_TARGET_ZONE_MAX_POWER = 0.80;
+    final double SHOOTER_BANG_BANG_TARGET_ZONE_MIN_POWER = 0.45;
 
-    public double targetRPM = 0.0;
+    final double SHOOTER_OFF_POWER  = 0.0;
+    final double SHOOTER_IDLE_POWER = 0.0;
+
+
+    public double targetRPM    = 0.0;
     public double shooterPower = 0.0;
+
+    private boolean readyToFire =     false;  //TBD MOVE TO SHOOTER
+
+    public boolean logTestData = false;
 
     
     
@@ -99,7 +112,6 @@ public class CatzShooter
     public double getFlywheelShaftVelocity()
     {
         return (Math.abs((double) shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity()) * CONV_QUAD_VELOCITY_TO_RPM); 
-        //return ((double) shtrMtrCtrlA.getSensorCollection().getPulseWidthVelocity()); 
     }
 
 
@@ -113,11 +125,11 @@ public class CatzShooter
         double maxRPM = 0.0;
         double minPower = 0.0;
         double maxPower = 0.0;
+        double shootTime = 0.0;
 
-        System.out.println("***** SET SHOOTER VELOITY *****");
+//        System.out.println("***** SET SHOOTER VELOCITY *****");
         
         flywheelShaftVelocity2 = getFlywheelShaftVelocity();
-        
 
         switch (shootingPosition)
         {
@@ -128,48 +140,64 @@ public class CatzShooter
                 maxRPM = targetRPM + SHOOTER_BANG_BANG_MAX_RPM_OFFSET;
                 minPower = SHOOTER_BANG_BANG_TARGET_ZONE_MIN_POWER;
                 maxPower = SHOOTER_BANG_BANG_TARGET_ZONE_MAX_POWER;
-                System.out.println("Shoot from target zone");
+               // System.out.println("T");
+                if(logTestData == true){
+                    minPower = maxPower;
+                    
+                }
+                    shootTime = Robot.dataCollectionTimer.get();
                 break;
 
             case SHOOT_FROM_START_LINE:
 
                 targetRPM = SHOOTER_TARGET_VEL_START_LINE_RPM ;
-                minRPM = targetRPM - SHOOTER_BANG_BANG_MIN_RPM_OFFSET;
-                maxRPM = targetRPM + SHOOTER_BANG_BANG_MAX_RPM_OFFSET;
-                minPower = SHOOTER_BANG_BANG_START_LINE_MIN_POWER;
-                maxPower = SHOOTER_BANG_BANG_START_LINE_MAX_POWER;
-                System.out.println("Shoot from start line");
-                break;
+                minRPM    = targetRPM - SHOOTER_BANG_BANG_MIN_RPM_OFFSET;
+                maxRPM    = targetRPM + SHOOTER_BANG_BANG_MAX_RPM_OFFSET;
+                minPower  = SHOOTER_BANG_BANG_START_LINE_MIN_POWER;
+                maxPower  = SHOOTER_BANG_BANG_START_LINE_MAX_POWER;
 
+                if(logTestData == true){
+                    minPower = maxPower;
+                    
+                }
+                    shootTime = Robot.dataCollectionTimer.get();
+               // System.out.println("T0: " + shootTime );
+                        break;
+
+           /* case SHOOT_IDLE_MODE:
+                validLocation = false;
+                shooterPower = SHOOTER_IDLE_POWER;
+                break; */
 
             default: 
                 validLocation = false;
-                System.out.println("INVALID");
+                shooterPower  = SHOOTER_OFF_POWER;
                 break;
-
         }
 
         if (validLocation == true) {
-            System.out.println(maxRPM);
-            System.out.println(minRPM);
-            System.out.println(flywheelShaftVelocity2);
-       
-             if (flywheelShaftVelocity2 > maxRPM) {
-                System.out.print("Changing to Min\n");
+            //System.out.println("valid location is true");
+            shootTime = Robot.dataCollectionTimer.get();
+            if(logTestData == true){
+                System.out.println("T2: " + shootTime + " : " + flywheelShaftVelocity2 + " Power: " + shooterPower);
+            }
+
+            if (flywheelShaftVelocity2 > maxRPM) {
                 shooterPower = minPower;
-        
-             }
+               // System.out.println("set min "  + shooterPower); 
+
+              
+                //System.out.println("T1: " + shootTime );
+                }
             else if(flywheelShaftVelocity2 < minRPM) {
-                System.out.print("Changing to Max\n");
                 shooterPower = maxPower;
             }
-            shtrMtrCtrlA.set(shooterPower);
-            System.out.println(shooterPower);
+
         }
-        else{
-            shooterPower = 0.0;
-            shtrMtrCtrlA.set(shooterPower);
-        }
+
+        shtrMtrCtrlA.set(shooterPower);
+        //System.out.println(shooterPower);            
+        
     }
 
  

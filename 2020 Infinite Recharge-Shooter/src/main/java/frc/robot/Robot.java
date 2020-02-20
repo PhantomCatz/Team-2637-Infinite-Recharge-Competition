@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -22,6 +23,7 @@ import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIndexer;
 import frc.Mechanisms.CatzIntake;
 import frc.Mechanisms.CatzShooter;
+//import frc.Mechanisms.CatzShooter2;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -37,14 +39,17 @@ public class Robot extends TimedRobot
   public static CatzIndexer    indexer;
   public static CatzShooter    Shooter;
   public static CatzClimber    climber;
+  //public static CatzShooter2   shooter2;
 
   public static DataCollection dataCollection;
 
   private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  //private static XboxController XboxAux;
+
+
 
   private static final int XBOX_DRV_PORT = 0;
-  private static final int XBOX_AUX_PORT = 1;
+  //private static final int XBOX_AUX_PORT = 1;
 
   public static PowerDistributionPanel pdp;
 
@@ -52,45 +57,31 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
-  public boolean testFlag = false;
-
-
-  public static double testPower = 0;
-
-  double c;
-
-  private boolean readyToFire =     false;
-
-  private final int RPM_RANGE_MIN = 4100;
-  private final int RPM_RANGE_MAX = 4300;
-
-  private final double TARGET_VELOCITY = 20000;
-
-  int testing = 0;
+  
+  public  int testing = Shooter.SHOOT_IDLE_MODE; //Shooter.SHOOT_IDLE_MODE;
+  
 
   @Override
   public void robotInit() 
   {
-    pdp = new PowerDistributionPanel();
-
-    dataArrayList = new ArrayList<CatzLog>();
-
-    dataCollection = new DataCollection();
-
+    
+    //dataArrayList       = new ArrayList<CatzLog>();
+   // dataCollection      = new DataCollection();
     dataCollectionTimer = new Timer();
 
-    autonomousTimer = new Timer();
+   // autonomousTimer     = new Timer();
     
-    dataCollection.dataCollectionInit(dataArrayList);
+   // dataCollection.dataCollectionInit(dataArrayList);
+
+    //pdp = new PowerDistributionPanel();
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-    XboxAux = new XboxController(XBOX_AUX_PORT);
+   // XboxAux = new XboxController(XBOX_AUX_PORT);
 
-    driveTrain = new CatzDriveTrain();
-    indexer = new CatzIndexer();
-    Shooter = new CatzShooter();
-
-    
+    //driveTrain = new CatzDriveTrain();
+    //indexer    = new CatzIndexer();
+    Shooter    = new CatzShooter();
+    //shooter2   = new CatzShooter2();
 
   }
 
@@ -103,15 +94,17 @@ public class Robot extends TimedRobot
      //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
 
+
   @Override
   public void autonomousInit() 
   {
+    /*
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
     dataCollection.startDataCollection();
-
-    autonomousTimer.start();
+*/
+   // autonomousTimer.start();
   /*  while(autonomousTimer.get() <2)
     {
       driveTrain.arcadeDrive(1, 0);
@@ -128,27 +121,37 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
+
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
-    dataCollection.startDataCollection();
+//    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
+//    dataCollection.startDataCollection();
+
   }
 
   @Override
   public void teleopPeriodic()
   {
+    
     if(xboxDrv.getBumper(Hand.kLeft)){
      testing = Shooter.SHOOT_FROM_START_LINE;
-     System.out.println("Left bumper");
+      // testing = shooter2.SHOOT_RAMP;
+       System.out.println("Left bumper");
     }
 
     if(xboxDrv.getBumper(Hand.kRight)){
-      testing = -1;
+      testing = Shooter.SHOOT_FROM_TARGET_ZONE;
       System.out.println("Right Bumper");
     }
-    Shooter.setShooterVelocity(testing);
-   
+
+   if(xboxDrv.getAButton()){
+     Shooter.logTestData = true;
+   }
+   if(xboxDrv.getBButton()){
+     Shooter.logTestData = false;
+   }
     
+   Shooter.setShooterVelocity(testing);
      /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
     if(xboxDrv.getBumper(Hand.kLeft)){
       driveTrain.retractGearShift();
@@ -161,11 +164,11 @@ public class Robot extends TimedRobot
     
     if (xboxDrv.getAButton())
     {
-     Shooter.shooterPower = 0.7 ;
-     Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
+     //Shooter.shooterPower = 0.7 ;
+     //Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
      //Shooter.setTargetVelocity(20000);
     }
-
+/*
     else if (xboxDrv.getXButton())
     {
       Shooter.shooterPower += 0.02;
@@ -179,11 +182,11 @@ public class Robot extends TimedRobot
       Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
       Timer.delay(0.5);
     }
-
-    else if (xboxDrv.getBButton())
-    {
-      Shooter.shtrMtrCtrlA.set(0);
-    }
+*/
+   // else if (xboxDrv.getBButton())
+    //{
+    //  Shooter.shtrMtrCtrlA.set(0);
+    //}
   }
   
     //Intake.rollIntake(xboxDrv.getY(Hand.kLeft));
@@ -192,14 +195,14 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit() 
   {
-    dataCollection.stopDataCollection();
+   /* dataCollection.stopDataCollection();
     
-    /*** 
+    
       for (int i = 0; i <dataArrayList.size();i++)
       {
          System.out.println(dataArrayList.get(i));
       }  
-    ***/
+    
 
     try 
     {
@@ -208,6 +211,7 @@ public class Robot extends TimedRobot
     {
       e.printStackTrace();
     } 
+    */
   }
 
 }
