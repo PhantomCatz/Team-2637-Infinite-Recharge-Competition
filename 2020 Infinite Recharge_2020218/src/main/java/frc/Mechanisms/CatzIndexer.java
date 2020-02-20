@@ -43,12 +43,12 @@ public class CatzIndexer
     private double sensorRange = 0.0;
     private int ballCount = 0;
 
-    private final boolean BALL_NOT_PRESENT = false;
-    private final boolean BALL_PRESENT = true; 
+    private final boolean BALL_NOT_PRESENT = true;
+    private final boolean BALL_PRESENT = false; 
 
     public static ArrayList<Double> indexerArrayList;  
 
-    public Timer indexTime2;
+    //public Timer indexTime2;
 
     public CatzIndexer()
     {
@@ -133,6 +133,7 @@ public class CatzIndexer
             {
                 indexerArrayList.add(10.0);
                 reachedMaxCapacity = true;
+                indexerMtrCtrl.set(0.0);
             }
             else  
             {   
@@ -146,8 +147,8 @@ public class CatzIndexer
                 if(sensorRange < BALL_IN_RANGE_THRESHOLD)
                 { 
                     indexerArrayList.add(21.0);
-                    indexTime2.stop();                   //Indexer Motor Timeout
-                    indexTime2.reset();                  //Indexer Motor Timeout
+                    //indexTime2.stop();                   //Indexer Motor Timeout
+                    //indexTime2.reset();                  //Indexer Motor Timeout
                     transferingBallToIndexer = true;
                     indexerMtrCtrl.set(BELT_SPEED);
                 }
@@ -169,13 +170,13 @@ public class CatzIndexer
                                 reachedMaxCapacity = true;
                             }
                         }
-                        indexTime2.start();                     //Indexer Motor Timeout
+                        //indexTime2.start();                     //Indexer Motor Timeout
 
-                        if(indexTime2.get() > 2 && indexerEntranceSwitchState == BALL_NOT_PRESENT)
+                        /*if(indexTime2.get() > 200 && indexerEntranceSwitchState == BALL_NOT_PRESENT)
                         {
                             transferingBallToIndexer = false;
                             indexerMtrCtrl.set(0.0);
-                        }
+                        }*/
                     }
                 }
             }           
@@ -245,6 +246,9 @@ public class CatzIndexer
            System.out.println(indexerArrayList.get(i));
         }  
     }
-
+    public void indexerMotorCheck()
+    {
+        indexerMtrCtrl.set(0.5);
+    }
 
 }

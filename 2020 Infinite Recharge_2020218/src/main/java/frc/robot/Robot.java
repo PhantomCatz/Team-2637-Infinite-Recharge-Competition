@@ -35,46 +35,46 @@ public class Robot extends TimedRobot
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
-  public static CatzShooter    Shooter;
-  public static CatzClimber    climber;
+  //public static CatzShooter    Shooter;
+  //public static CatzClimber    climber;
 
-  public static DataCollection dataCollection;
+  //public static DataCollection dataCollection;
 
   private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  private static XboxController xboxAux;
 
   private static final int XBOX_DRV_PORT = 0;
   private static final int XBOX_AUX_PORT = 1;
 
-  public static PowerDistributionPanel pdp;
+  //public static PowerDistributionPanel pdp;
 
   public static Timer dataCollectionTimer;
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
   
-  int testing = Shooter.SHOOT_IDLE_MODE;
+ // int testing = Shooter.SHOOT_IDLE_MODE;
 
 
   @Override
   public void robotInit() 
   {
     dataArrayList       = new ArrayList<CatzLog>();
-    dataCollection      = new DataCollection();
+    //dataCollection      = new DataCollection();
     dataCollectionTimer = new Timer();
 
     autonomousTimer     = new Timer();
     
-    dataCollection.dataCollectionInit(dataArrayList);
+    //dataCollection.dataCollectionInit(dataArrayList);
 
-    pdp = new PowerDistributionPanel();
+    //pdp = new PowerDistributionPanel();
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-    XboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
 
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
-    Shooter    = new CatzShooter();
+    //Shooter    = new CatzShooter();
 
   }
 
@@ -82,7 +82,7 @@ public class Robot extends TimedRobot
   public void robotPeriodic() 
   {
   
-    Shooter.displaySmartDashboard();
+    //Shooter.displaySmartDashboard();
 
      //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
@@ -91,7 +91,7 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit() 
   {
-    dataCollection.dataInit();
+    //dataCollection.dataInit();
 
 
     autonomousTimer.start();
@@ -106,13 +106,13 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-    dataCollection.dataInit();
+    //dataCollection.dataInit();
   }
 
   @Override
   public void teleopInit() 
   {
-    dataCollection.dataInit();
+    //dataCollection.dataInit();
     
   }
 
@@ -120,17 +120,21 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
   
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+
+    //indexer.indexerMotorCheck();
+    indexer.runIndexer2();
+    indexer.showSmartDashboard();
+  
+    intake.rollIntake(xboxDrv.getY(Hand.kLeft));
+    intake.deployIntake(xboxDrv.getY(Hand.kRight));
 
   }
-  
-    //Intake.rollIntake(xboxDrv.getY(Hand.kLeft));
-   // Intake.deployIntake(xboxDrv.getY(Hand.kRight));
-  
+
   @Override
   public void disabledInit() 
   {
-    dataCollection.stopDataCollection();
+    //dataCollection.stopDataCollection();
     
     /*** 
       for (int i = 0; i <dataArrayList.size();i++)
@@ -141,7 +145,7 @@ public class Robot extends TimedRobot
 
     try 
     {
-      dataCollection.exportData(dataArrayList);
+      //dataCollection.exportData(dataArrayList);
     } catch (Exception e) 
     {
       e.printStackTrace();

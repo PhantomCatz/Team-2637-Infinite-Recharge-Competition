@@ -120,12 +120,12 @@ public class DataCollection
         switch (dataID) 
         {
             case LOG_ID_DRV_TRAIN :
-                data1 = Robot.pdp.getVoltage();
+                /*data1 = Robot.pdp.getVoltage();
 
                 data2 = Robot.pdp.getCurrent(Robot.driveTrain.DRV_TRN_LT_FRNT_MC_PDP_PORT);
                 data3 = Robot.pdp.getCurrent(Robot.driveTrain.DRV_TRN_LT_BACK_MC_PDP_PORT);
                 data4 = Robot.pdp.getCurrent(Robot.driveTrain.DRV_TRN_RT_FRNT_MC_PDP_PORT);
-                data5 = Robot.pdp.getCurrent(Robot.driveTrain.DRV_TRN_RT_BACK_MC_PDP_PORT);
+                data5 = Robot.pdp.getCurrent(Robot.driveTrain.DRV_TRN_RT_BACK_MC_PDP_PORT);*/
 
                 data6 = Robot.driveTrain.getMotorTemperature(Robot.driveTrain.DRVTRAIN_LT_FRNT_MC_CAN_ID);
                 data7 = Robot.driveTrain.getMotorTemperature(Robot.driveTrain.DRVTRAIN_LT_BACK_MC_CAN_ID);
