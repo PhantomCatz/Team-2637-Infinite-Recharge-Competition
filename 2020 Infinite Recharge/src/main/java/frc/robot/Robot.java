@@ -7,6 +7,17 @@
 
 package frc.robot;
 
+<<<<<<< Updated upstream
+=======
+import java.util.ArrayList;
+
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.SoftLimitDirection;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
+>>>>>>> Stashed changes
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import frc.Mechanisms.CatzClimber;
@@ -72,6 +83,11 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+<<<<<<< Updated upstream
+=======
+   driveTrain.setDriveTrainObjToNull();
+   driveTrain.setTargetVelocity(3000);
+>>>>>>> Stashed changes
   }
 
   @Override
@@ -84,12 +100,21 @@ public class Robot extends TimedRobot
   public void testPeriodic() 
   {
 
+<<<<<<< Updated upstream
+=======
+    driveTrain.instatiateDriveTrainObj();
+>>>>>>> Stashed changes
   }
 
   @Override
   public void disabledInit()
   {
+<<<<<<< Updated upstream
 
+=======
+    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    
+>>>>>>> Stashed changes
   }
 
   @Override
