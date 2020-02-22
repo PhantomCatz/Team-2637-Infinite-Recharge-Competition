@@ -4,40 +4,63 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.IdleMode;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class CatzIntake
 {
-    private WPI_VictorSPX intakeRollerMtrCtrl;
-    private WPI_TalonSRX  intakeDeployMtrCtrl; 
+    private WPI_VictorSPX intakeRollerMtrCtrlA;
+    private WPI_TalonSRX  intakeRollerMtrCtrlB;
 
-    private final int INTAKE_ROLLER_MC_CAN_ID = 10;
-    private final int INTAKE_DEPLOY_MC_CAN_ID = 11;
+    private CANSparkMax  intakeDeployMtrCtrl; 
+
+    public final int INTAKE_ROLLER_A_MC_CAN_ID = 10;
+    public final int INTAKE_ROLLER_B_MC_CAN_ID = 11;
+
+    public final int INTAKE_DEPLOY_MC_CAN_ID = 12;
+
+    public final int INTAKE_ROLLER_A_MC_PDP_PORT   = 4;
+    public final int INTAKE_ROLLER_B_MC_PDP_PORT   = 9;   
+
+    public final int INTAKE_DEPLOY_MC_PDP_PORT   = 11;
 
     public CatzIntake()
     {
-        intakeRollerMtrCtrl = new WPI_VictorSPX(INTAKE_ROLLER_MC_CAN_ID);
-        intakeDeployMtrCtrl = new WPI_TalonSRX (INTAKE_DEPLOY_MC_CAN_ID);
+        intakeRollerMtrCtrlA = new WPI_VictorSPX(INTAKE_ROLLER_A_MC_CAN_ID);
+        intakeRollerMtrCtrlB = new WPI_TalonSRX(INTAKE_ROLLER_B_MC_CAN_ID);
+
+        intakeDeployMtrCtrl = new CANSparkMax(INTAKE_ROLLER_B_MC_CAN_ID, MotorType.kBrushless);
 
         //Reset configuration
-        intakeRollerMtrCtrl.configFactoryDefault();
-        intakeDeployMtrCtrl.configFactoryDefault();
+        intakeRollerMtrCtrlA.configFactoryDefault();
+        intakeRollerMtrCtrlB.configFactoryDefault();
 
-        //Set deploy MC to brake mode
-        intakeDeployMtrCtrl.setNeutralMode(NeutralMode.Brake);
+        intakeDeployMtrCtrl.restoreFactoryDefaults();
+
+        //set the follow mode 
+        intakeRollerMtrCtrlA.follow(intakeRollerMtrCtrlB);
 
         //Set roller MC to coast mode
+<<<<<<< HEAD
         intakeRollerMtrCtrl.setNeutralMode(NeutralMode.Coast);
 
+=======
+        intakeRollerMtrCtrlA.setNeutralMode(NeutralMode.Coast);
+
+        //Set deploy MC to brake mode
+        intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
+>>>>>>> master
     }
 
     public void rollIntake()
     {
-        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, -0.72); // can change this value after testing
+        intakeRollerMtrCtrlB.set(ControlMode.PercentOutput, -0.72); // can change this value after testing
     }
 
     public void deployIntake()
     {
-        intakeDeployMtrCtrl.set(ControlMode.PercentOutput, 0.4); // can change this value after testing
+        intakeDeployMtrCtrl.set(0.4); // can change this value after testing
     }
 
     public int getDrvTrainLTPosition()
