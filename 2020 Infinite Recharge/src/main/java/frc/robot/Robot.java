@@ -7,19 +7,9 @@
 
 package frc.robot;
 
-<<<<<<< Updated upstream
-=======
-import java.util.ArrayList;
-
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.SoftLimitDirection;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
->>>>>>> Stashed changes
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.Mechanisms.CatzClimber;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIndexer;
@@ -40,26 +30,26 @@ public class Robot extends TimedRobot
    * for any initialization code.
    */
 
-  CatzDriveTrain drvTrain;
+  CatzDriveTrain driveTrain;
   CatzIndexer    indexer;
   CatzIntake     intake;
   CatzShooter    shooter;
   CatzClimber    climber;
   
-  XboxController drv;
-  XboxController aux;
+  XboxController xboxDrv;
+  XboxController xboxAux;
 
   @Override
   public void robotInit() 
   {
-    drvTrain = new CatzDriveTrain();
+    driveTrain = new CatzDriveTrain();
     indexer  = new CatzIndexer();
     intake   = new CatzIntake();
     shooter  = new CatzShooter();
     climber  = new CatzClimber();
 
-    drv = new XboxController(0);
-    aux = new XboxController(1);
+    xboxDrv = new XboxController(0);
+    xboxAux = new XboxController(1);
   }
 
   @Override
@@ -83,11 +73,8 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-<<<<<<< Updated upstream
-=======
    driveTrain.setDriveTrainObjToNull();
    driveTrain.setTargetVelocity(3000);
->>>>>>> Stashed changes
   }
 
   @Override
@@ -100,21 +87,14 @@ public class Robot extends TimedRobot
   public void testPeriodic() 
   {
 
-<<<<<<< Updated upstream
-=======
     driveTrain.instatiateDriveTrainObj();
->>>>>>> Stashed changes
   }
 
   @Override
   public void disabledInit()
   {
-<<<<<<< Updated upstream
-
-=======
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
     
->>>>>>> Stashed changes
   }
 
   @Override

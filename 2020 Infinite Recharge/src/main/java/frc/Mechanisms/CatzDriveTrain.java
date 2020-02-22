@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -14,23 +15,31 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 
 public class CatzDriveTrain
 {
-    private WPI_TalonFX drvTrainMtrCtrlLTFrnt;
-    private WPI_TalonFX drvTrainMtrCtrlLTBack;
-    private WPI_TalonFX drvTrainMtrCtrlRTFrnt;
-    private WPI_TalonFX drvTrainMtrCtrlRTBack;
+    public WPI_TalonFX drvTrainMtrCtrlLTFrnt;
+    public WPI_TalonFX drvTrainMtrCtrlLTBack;
+    public WPI_TalonFX drvTrainMtrCtrlRTFrnt;
+    public WPI_TalonFX drvTrainMtrCtrlRTBack;
 
-    private final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
-    private final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
+    private static WPI_TalonSRX srxEncLT;
+    private static WPI_TalonSRX srxEncRT;
 
-    private final int DRVTRAIN_RT_FRNT_MC_CAN_ID = 3;
-    private final int DRVTRAIN_RT_BACK_MC_CAN_ID = 4;
+    public final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
+    public final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
 
-    private static DifferentialDrive drvTrainDifferentialDrive;
+    public final int DRVTRAIN_RT_FRNT_MC_CAN_ID = 3;
+    public final int DRVTRAIN_RT_BACK_MC_CAN_ID = 4;
 
-    private static SpeedControllerGroup drvTrainLT;
-    private static SpeedControllerGroup drvTrainRT;
+    public final int DRV_TRN_LT_FRNT_MC_PDP_PORT = 0;
+    public final int DRV_TRN_LT_BACK_MC_PDP_PORT = 1;
+    public final int DRV_TRN_RT_FRNT_MC_PDP_PORT = 15;
+    public final int DRV_TRN_RT_BACK_MC_PDP_PORT = 14;
 
-    private static DoubleSolenoid gearShifter;
+    private DifferentialDrive drvTrainDifferentialDrive;
+
+    private SpeedControllerGroup drvTrainLT;
+    private SpeedControllerGroup drvTrainRT;
+
+    private DoubleSolenoid gearShifter;
 
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
@@ -64,8 +73,12 @@ public class CatzDriveTrain
     private final int PID_IDX_CLOSED_LOOP = 0;
     private final int PID_TIMEOUT_MS = 10;
 
+
     public CatzDriveTrain() 
     {
+        srxEncLT = new WPI_TalonSRX(5);
+        srxEncRT = new WPI_TalonSRX(6);
+
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
@@ -111,14 +124,11 @@ public class CatzDriveTrain
 
     public void setDriveTrainObjToNull()
     {
-        //drvTrainDifferentialDrive = null;
-        drvTrainDifferentialDrive.close();
+        drvTrainDifferentialDrive.close();        
+        drvTrainDifferentialDrive = null;
+        //drvTrainDifferentialDrive.close();
     }
 
-    public void test()
-    {
-        drvTrainDifferentialDrive.close();
-    }
 
     public void instatiateDriveTrainObj()
     {
@@ -165,26 +175,26 @@ public class CatzDriveTrain
     public double getMotorTemperature(int id)
     {
         double temp = 0.0;
-        if(id == 1)
+        if(id == DRVTRAIN_LT_FRNT_MC_CAN_ID)
         {
             temp = drvTrainMtrCtrlLTFrnt.getTemperature();
         } 
-        else if (id == 2)
+        else if (id == DRVTRAIN_LT_BACK_MC_CAN_ID)
         {   
             temp = drvTrainMtrCtrlLTBack.getTemperature();
         }
-        else if (id == 3)
+        else if (id == DRVTRAIN_RT_FRNT_MC_CAN_ID)
         {
             temp = drvTrainMtrCtrlRTFrnt.getTemperature();
         }
-        else if (id == 4)
+        else if (id == DRVTRAIN_RT_BACK_MC_CAN_ID)
         {
             temp = drvTrainMtrCtrlRTBack.getTemperature();
         }
         return temp;
     }
-    /*
-    public double getSrxMagPosition(String side) //Combine into one method
+
+    public double getSrxMagPosition(String side)
     {
         side.toUpperCase();
         double position = 0.0;
@@ -197,9 +207,9 @@ public class CatzDriveTrain
             position = srxEncRT.getSensorCollection().getQuadraturePosition();
         }
         return position;
-    }*/
+    }
 
-    public double getIntegratedEncLTPosition(String side) //combine into one method
+    public double getIntegratedEncPosition(String side) 
     {
         double position = 0.0;
         side.toUpperCase();
@@ -214,7 +224,7 @@ public class CatzDriveTrain
         return position;
     }
     
-    public double getIntegratedEncLTVelocity(String side)
+    public double getIntegratedEncVelocity(String side)
     {
         double velocity = 0.0;
         side.toUpperCase();
