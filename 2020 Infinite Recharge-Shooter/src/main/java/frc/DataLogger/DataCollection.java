@@ -188,7 +188,7 @@ public class DataCollection
 
         if(validLogID == true) 
         {
-            data = new CatzLog(Robot.dataCollectionTimer.get(), data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13);
+            data = new CatzLog(((Timer) Robot.dataCollectionTimer).get(), data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13);
             logData.add(data);
         }
     }

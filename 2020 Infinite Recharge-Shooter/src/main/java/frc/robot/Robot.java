@@ -23,7 +23,7 @@ import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIndexer;
 import frc.Mechanisms.CatzIntake;
 import frc.Mechanisms.CatzShooter;
-//import frc.Mechanisms.CatzShooter2;
+
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -37,7 +37,7 @@ public class Robot extends TimedRobot
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
-  public static CatzShooter    Shooter;
+  public static CatzShooter    shooter;
   public static CatzClimber    climber;
   //public static CatzShooter2   shooter2;
 
@@ -57,8 +57,7 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
-  
-  public  int testing = Shooter.SHOOT_IDLE_MODE; //Shooter.SHOOT_IDLE_MODE;
+ 
   
 
   @Override
@@ -80,7 +79,7 @@ public class Robot extends TimedRobot
 
     //driveTrain = new CatzDriveTrain();
     //indexer    = new CatzIndexer();
-    Shooter    = new CatzShooter();
+    shooter    = new CatzShooter();
     //shooter2   = new CatzShooter2();
 
   }
@@ -89,7 +88,7 @@ public class Robot extends TimedRobot
   public void robotPeriodic() 
   {
   
-    Shooter.displaySmartDashboard();
+    shooter.displaySmartDashboard();
 
      //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
@@ -134,24 +133,28 @@ public class Robot extends TimedRobot
   {
     
     if(xboxDrv.getBumper(Hand.kLeft)){
-     testing = Shooter.SHOOT_FROM_START_LINE;
-      // testing = shooter2.SHOOT_RAMP;
-       System.out.println("Left bumper");
+      shooter.setTargetRPM(5000.0);
     }
 
     if(xboxDrv.getBumper(Hand.kRight)){
-      testing = Shooter.SHOOT_FROM_TARGET_ZONE;
-      System.out.println("Right Bumper");
+     shooter.setTargetRPM(6000.0)
     }
 
    if(xboxDrv.getAButton()){
-     Shooter.logTestData = true;
+     shooter.logTestData = true;
    }
    if(xboxDrv.getBButton()){
-     Shooter.logTestData = false;
+     shooter.logTestData = false;
    }
     
-   Shooter.setShooterVelocity(testing);
+   
+   if(xboxDrv.getXButton()){
+    shooter.shoot();
+   }
+   if(xboxDrv.getYButton()){
+    shooter.shooterOff();
+   }
+ 
      /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
     if(xboxDrv.getBumper(Hand.kLeft)){
       driveTrain.retractGearShift();
