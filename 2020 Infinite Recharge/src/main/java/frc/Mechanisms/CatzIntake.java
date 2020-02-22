@@ -42,15 +42,10 @@ public class CatzIntake
         intakeRollerMtrCtrlA.follow(intakeRollerMtrCtrlB);
 
         //Set roller MC to coast mode
-<<<<<<< HEAD
-        intakeRollerMtrCtrl.setNeutralMode(NeutralMode.Coast);
-
-=======
         intakeRollerMtrCtrlA.setNeutralMode(NeutralMode.Coast);
 
         //Set deploy MC to brake mode
         intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
->>>>>>> master
     }
 
     public void rollIntake()
@@ -61,14 +56,5 @@ public class CatzIntake
     public void deployIntake()
     {
         intakeDeployMtrCtrl.set(0.4); // can change this value after testing
-    }
-
-    public int getDrvTrainLTPosition()
-    {
-        return intakeDeployMtrCtrl.getSensorCollection().getQuadraturePosition(); 
-    }
-    public int getDrvTrainLTVelocity()
-    {
-        return intakeDeployMtrCtrl.getSensorCollection().getQuadratureVelocity(); 
     }
 }

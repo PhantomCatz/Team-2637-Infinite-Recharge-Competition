@@ -11,16 +11,11 @@ import java.util.ArrayList;
 
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
-<<<<<<< HEAD
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
-=======
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
->>>>>>> master
 import frc.Mechanisms.CatzClimber;
 import frc.Mechanisms.CatzDriveTrain;
 import frc.Mechanisms.CatzIndexer;
@@ -36,21 +31,6 @@ import frc.Mechanisms.CatzShooter;
  */
 public class Robot extends TimedRobot
 {
-<<<<<<< HEAD
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any initialization code.
-   */
-
-  CatzDriveTrain driveTrain;
-  CatzIndexer    indexer;
-  CatzIntake     intake;
-  CatzShooter    shooter;
-  CatzClimber    climber;
-  
-  XboxController xboxDrv;
-  XboxController xboxAux;
-=======
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
@@ -71,21 +51,10 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
->>>>>>> master
 
   @Override
   public void robotInit() 
   {
-<<<<<<< HEAD
-    driveTrain = new CatzDriveTrain();
-    indexer  = new CatzIndexer();
-    intake   = new CatzIntake();
-    shooter  = new CatzShooter();
-    climber  = new CatzClimber();
-
-    xboxDrv = new XboxController(0);
-    xboxAux = new XboxController(1);
-=======
     pdp = new PowerDistributionPanel();
 
     dataArrayList = new ArrayList<CatzLog>();
@@ -105,15 +74,11 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
->>>>>>> master
   }
 
   @Override
   public void autonomousInit() 
   {
-<<<<<<< HEAD
-
-=======
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
@@ -126,60 +91,31 @@ public class Robot extends TimedRobot
     }
 
     driveTrain.arcadeDrive(0, 0);
->>>>>>> master
   }
 
   @Override
   public void autonomousPeriodic() 
   {
-
   }
 
   @Override
   public void teleopInit() 
   {
-<<<<<<< HEAD
-
-=======
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
     dataCollection.startDataCollection();
->>>>>>> master
   }
 
   @Override
   public void teleopPeriodic()
-<<<<<<< HEAD
-  {
-   driveTrain.setDriveTrainObjToNull();
-   driveTrain.setTargetVelocity(3000);
-  }
-
-  @Override
-  public void testInit() 
-  {
-
-=======
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
->>>>>>> master
   }
 
   @Override
   public void disabledInit() 
   {
-<<<<<<< HEAD
-
-    driveTrain.instatiateDriveTrainObj();
-  }
-
-  @Override
-  public void disabledInit()
-  {
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    
-=======
     dataCollection.stopDataCollection();
     
       for (int i = 0; i <dataArrayList.size();i++)
@@ -194,12 +130,6 @@ public class Robot extends TimedRobot
     {
       e.printStackTrace();
     } 
->>>>>>> master
   }
 
-  @Override
-  public void disabledPeriodic()
-  {
-
-  }
 }

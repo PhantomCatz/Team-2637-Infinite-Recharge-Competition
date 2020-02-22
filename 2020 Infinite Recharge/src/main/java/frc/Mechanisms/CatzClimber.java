@@ -27,6 +27,7 @@ public class CatzClimber
     final private int CLIMBER_CURRENT_LIMIT = 80;
     
     public CatzClimber()
+
     {
         climbMtrCtrlA = new CANSparkMax(CLIMB_MC_A_CAN_ID, MotorType.kBrushless);
         climbMtrCtrlB = new CANSparkMax(CLIMB_MC_B_CAN_ID, MotorType.kBrushless);

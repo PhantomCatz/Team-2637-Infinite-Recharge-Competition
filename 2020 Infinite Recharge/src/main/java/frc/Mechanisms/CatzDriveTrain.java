@@ -122,19 +122,6 @@ public class CatzDriveTrain
         setDriveTrainPIDConfiguration();
     }
 
-    public void setDriveTrainObjToNull()
-    {
-        drvTrainDifferentialDrive.close();        
-        drvTrainDifferentialDrive = null;
-        //drvTrainDifferentialDrive.close();
-    }
-
-
-    public void instatiateDriveTrainObj()
-    {
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
-    }
-
     public void setDriveTrainPIDConfiguration() 
     {
          //Configure feedback device for PID loop
