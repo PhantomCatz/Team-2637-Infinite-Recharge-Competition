@@ -1,4 +1,4 @@
-package frc.robot;
+package frc.DataLogger;
 
 public class CatzLog 
 {
@@ -16,6 +16,8 @@ public class CatzLog
     public double robotData11;
     public double robotData12;
     public double robotData13;
+    public double robotData14;
+    public double robotData15;
   
     
     public int robotDataType;
@@ -24,7 +26,7 @@ public class CatzLog
     public CatzLog(double time, 
                    double data1, double data2, double data3, double data4, double data5, 
                    double data6, double data7, double data8, double data9, double data10, 
-                   double data11, double data12, double data13)
+                   double data11, double data12, double data13, double data14, double data15)
     {
         robotTime  = time;
         robotData1 = data1;
@@ -40,7 +42,8 @@ public class CatzLog
         robotData11 = data11;
         robotData12 = data12;
         robotData13 = data13;
-
+        robotData14 = data14;
+        robotData15 = data15;
     }
 
   
@@ -49,7 +52,7 @@ public class CatzLog
     {
         return robotTime +", " + robotData1 + ", " + robotData2 + ", " + robotData3 + ", " + robotData4 + ", " + robotData5 + ", " 
                                + robotData6 + ", " + robotData7 + ", " + robotData8 + ", " + robotData9 + ", " + robotData10 + ","
-                               + robotData11 + "," + robotData12 + ", " + robotData13;   
+                               + robotData11 + "," + robotData12 + ", " + robotData13+","  + robotData14+  "," + robotData15;
     }
 
 
