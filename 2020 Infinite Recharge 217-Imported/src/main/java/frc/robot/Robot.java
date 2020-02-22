@@ -87,7 +87,15 @@ public class Robot extends TimedRobot
   public void robotPeriodic() 
   {
    // indexer.runIndexer2();
-    indexer.showSmartDashboard();
+    //indexer.showSmartDashboard();
+
+    SmartDashboard.putNumber("Left Motor Velocity", driveTrain.getIntegratedEncVelocity("LT"));
+    SmartDashboard.putNumber("Right Motor Velocity", driveTrain.getIntegratedEncVelocity("RT"));
+    SmartDashboard.putNumber("PID P Value", driveTrain.PID_P);
+    SmartDashboard.putNumber("PID I Value", driveTrain.PID_I);
+    SmartDashboard.putNumber("PID D Value", driveTrain.PID_D);
+    SmartDashboard.putNumber("PID F Value", driveTrain.PID_F);
+
 
     /*SmartDashboard.putNumber("RPM", shooter.getFlywheelShaftVelocity());
     SmartDashboard.putNumber("Power", shooter.getShooterPower());
@@ -115,7 +123,7 @@ public class Robot extends TimedRobot
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
   }
 
@@ -123,7 +131,7 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
 
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+   //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     if(xboxDrv.getBButton())
     {
@@ -131,7 +139,8 @@ public class Robot extends TimedRobot
     }
     if(xboxDrv.getAButton())
     {
-      driveTrain.setTargetVelocity(8000);
+      driveTrain.setIntegratedEncPosition(0);
+      driveTrain.setTargetVelocity(16000);
     }
 
     if(xboxDrv.getBumper(Hand.kLeft))

@@ -45,7 +45,7 @@ public class DataCollection
 
     private final String LOG_HDR_DRV_TRAIN = "time,pdp-v,dt-lf-I,dt-lb-I,dt-rf-I,dt-rb-I,dt-lf-T,dt-lb-T,dt-rf-T,dt-rb-T,dt-l-ie,dt-r-ie,dt-l-ee,dt-r-ee,dt-l-v,dt-r-v";
     private final String LOG_HDR_DRV_STRAIGHT_PID   = "time,dt-l-iev,dt-l-pwr,dt-l-mcI,dt-l-cle,dt-l-errD,dt-l-iAcc," +
-                                                           "dt-r-iev,dt-r-pwr,dt-r-mcI,dt-r-cle,dt-r-errD,dt-r-iAcc";
+                                                           "dt-r-iev,dt-r-pwr,dt-r-mcI,dt-r-cle,dt-r-errD,dt-r-iAcc,dt-l-v,dt-r-v,dt-l-p,dt-r-p";
     private final String LOG_HDR_DRV_DISTANCE_PID = "Undefined";
     private final String LOG_HDR_DRV_TURN_PID = "Undefined";
     private final String LOG_HDR_SHOOTER = "time, pdp-v, shtr-A-v, shtr-B-v, shtr-A-I, shtr-B-I, shtr-A-T, shtr-B-T, shtr-fwsv, shtr-A-pwr, shtr-B-pwr";
@@ -118,6 +118,7 @@ public class DataCollection
         double data13 = -999.0;
         double data14 = -999.0;
         double data15 = -999.0;
+        double data16 = -999.0;
 
         boolean validLogID = true;
 
@@ -163,6 +164,12 @@ public class DataCollection
                 data11 =          Robot.driveTrain.drvTrainMtrCtrlRTFrnt.getErrorDerivative();
                 data12 =          Robot.driveTrain.drvTrainMtrCtrlRTFrnt.getIntegralAccumulator(0);
 
+                data13 = Robot.driveTrain.getIntegratedEncVelocity("LT");
+                data14 = Robot.driveTrain.getIntegratedEncVelocity("RT");
+
+                data15 = Robot.driveTrain.getIntegratedEncPosition("LT");
+                data16 = Robot.driveTrain.getIntegratedEncPosition("RT");
+
                 break; 
 
             case 3 :
@@ -198,7 +205,7 @@ public class DataCollection
 
         if(validLogID == true) 
         {
-            data = new CatzLog(Robot.dataCollectionTimer.get(), data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15);
+            data = new CatzLog(Robot.dataCollectionTimer.get(), data1, data2, data3, data4, data5, data6, data7, data8, data9, data10, data11, data12, data13, data14, data15, data16);
             logData.add(data);
         }
     }

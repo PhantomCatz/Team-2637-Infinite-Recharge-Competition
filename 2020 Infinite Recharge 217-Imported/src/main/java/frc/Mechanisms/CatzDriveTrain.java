@@ -72,6 +72,10 @@ public class CatzDriveTrain
     
     private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.98;
 
+    public final double PID_P = 0.2; // original value was 0.05
+    public final double PID_I = 0.0005; // original value was 0.0005
+    public final double PID_D = 0.1;   // original value was 0.1
+    public final double PID_F = 0.005; // original value was 0.005
 
     public CatzDriveTrain() 
     {
@@ -109,7 +113,7 @@ public class CatzDriveTrain
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
+       // drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM, DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM);
 
@@ -125,16 +129,16 @@ public class CatzDriveTrain
          drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP, PID_TIMEOUT_MS);
  
          //Configure PID Gain Constants
-         drvTrainMtrCtrlLTFrnt.config_kP(0, 0.05);
-         drvTrainMtrCtrlLTFrnt.config_kI(0, 0.0005);
-         drvTrainMtrCtrlLTFrnt.config_kD(0, 0.1);
-         drvTrainMtrCtrlLTFrnt.config_kF(0, 0.005);
+         drvTrainMtrCtrlLTFrnt.config_kP(0, PID_P);
+         drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
+         drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
+         drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
          drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, 0);
 
-         drvTrainMtrCtrlRTFrnt.config_kP(0, 0.05);
-         drvTrainMtrCtrlRTFrnt.config_kI(0, 0.0005);
-         drvTrainMtrCtrlRTFrnt.config_kD(0, 0.1);
-         drvTrainMtrCtrlRTFrnt.config_kF(0, 0.005);
+         drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
+         drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
+         drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
+         drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
          drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
  
         /* drvTrainMtrCtrlRTFrnt.config_kP(0, 0.03);
@@ -146,7 +150,7 @@ public class CatzDriveTrain
 
     public void arcadeDrive(double power, double rotation)
     {
-        drvTrainDifferentialDrive.arcadeDrive(power, rotation);
+       drvTrainDifferentialDrive.arcadeDrive(power, rotation);
     }
 
     public void shiftToHighGear()

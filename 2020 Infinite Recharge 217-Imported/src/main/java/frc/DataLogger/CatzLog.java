@@ -18,6 +18,7 @@ public class CatzLog
     public double robotData13;
     public double robotData14;
     public double robotData15;
+    public double robotData16;
   
     
     public int robotDataType;
@@ -26,7 +27,7 @@ public class CatzLog
     public CatzLog(double time, 
                    double data1, double data2, double data3, double data4, double data5, 
                    double data6, double data7, double data8, double data9, double data10, 
-                   double data11, double data12, double data13, double data14, double data15)
+                   double data11, double data12, double data13, double data14, double data15, double data16)
     {
         robotTime  = time;
         robotData1 = data1;
@@ -44,6 +45,7 @@ public class CatzLog
         robotData13 = data13;
         robotData14 = data14;
         robotData15 = data15;
+        robotData16 = data16;
     }
 
   
@@ -52,7 +54,7 @@ public class CatzLog
     {
         return robotTime +", " + robotData1 + ", " + robotData2 + ", " + robotData3 + ", " + robotData4 + ", " + robotData5 + ", " 
                                + robotData6 + ", " + robotData7 + ", " + robotData8 + ", " + robotData9 + ", " + robotData10 + ","
-                               + robotData11 + "," + robotData12 + ", " + robotData13;   
+                               + robotData11 + "," + robotData12 + ", " + robotData13 + ", " + robotData14 + ", " + robotData15 + "," + robotData16;   
     }
 
 
