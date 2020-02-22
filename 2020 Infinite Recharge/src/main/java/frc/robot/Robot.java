@@ -38,6 +38,10 @@ public class Robot extends TimedRobot
   public static CatzShooter    shooter;
   public static CatzClimber    climber;
 
+  static boolean check_boxL = false;
+  static boolean check_boxM = false;
+  static boolean check_boxR = false;
+
   public static DataCollection dataCollection;
 
   private static XboxController xboxDrv;
@@ -57,6 +61,10 @@ public class Robot extends TimedRobot
 
   private final int RPM_RANGE_MIN = 4100;
   private final int RPM_RANGE_MAX = 4300;
+	
+	static boolean prev_boxL = false;
+	static boolean prev_boxM = false;
+	static boolean prev_boxR = false;
 
   @Override
   public void robotInit() 
@@ -80,18 +88,55 @@ public class Robot extends TimedRobot
     indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber();
+    climber    = new CatzClimber();    
+   
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, true);
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, true);
+      
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, false);
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, false);
+      SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, false);
+    
+      SmartDashboard.putBoolean("Use default autonomous?", false);
+  
   }
+
+
 
   @Override
   public void robotPeriodic() 
   {
-   // indexer.runIndexer2();
     indexer.showSmartDashboard();
 
-    /*SmartDashboard.putNumber("RPM", shooter.getFlywheelShaftVelocity());
-    SmartDashboard.putNumber("Power", shooter.getShooterPower());
-    SmartDashboard.putNumber("Target Velocity", shooter.getTargetVelocity());*/
+    check_boxL = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORL, false);
+		check_boxM = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORM, false);
+		check_boxR = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORR, false);
+
+    if ((check_boxL != prev_boxL) && (check_boxL == true)) 
+    {
+			prev_boxL = check_boxL;
+			prev_boxM = false;
+			prev_boxR = false;
+			//System.out.println("Position Left");
+    } else if ((check_boxM != prev_boxM) && (check_boxM == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = check_boxM;
+			prev_boxR = false;
+			//System.out.println("Position Mid");
+    } else if ((check_boxR != prev_boxR) && (check_boxR == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = false;
+			prev_boxR = check_boxR;
+			//System.out.println("Position Right");
+		}
+		// Update display
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, prev_boxL);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
+
   }
 
   @Override
@@ -122,6 +167,9 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+
+
+    
 
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
