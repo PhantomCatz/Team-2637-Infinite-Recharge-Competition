@@ -113,7 +113,7 @@ public class CatzDriveTrain
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
+       // drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
 
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM, DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM);
 

@@ -75,6 +75,8 @@ public class Robot extends TimedRobot
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
     //Shooter    = new CatzShooter();
+    intake = new CatzIntake();
+    indexer.startIndexerThread();
 
   }
 
@@ -82,6 +84,8 @@ public class Robot extends TimedRobot
   public void robotPeriodic() 
   {
   
+    showIndexerSmartDashboard();
+
     //Shooter.displaySmartDashboard();
 
      //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
@@ -123,11 +127,15 @@ public class Robot extends TimedRobot
     //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     //indexer.indexerMotorCheck();
-    indexer.runIndexer2();
-    indexer.showSmartDashboard();
   
-    intake.rollIntake(xboxDrv.getY(Hand.kLeft));
-    intake.deployIntake(xboxDrv.getY(Hand.kRight));
+    if(xboxDrv.getAButton())
+    {
+      intake.rollIntake(-0.6);
+    }
+    if(xboxDrv.getBButton())
+    {
+      intake.stopRolling();
+    }
 
   }
 
@@ -151,5 +159,17 @@ public class Robot extends TimedRobot
       e.printStackTrace();
     } 
   }
+
+  public void showIndexerSmartDashboard()
+    {
+        indexer.sensorRange = indexer.ballSensor.getRangeInches();
+        SmartDashboard.putNumber("Ball Count in Indexer: ", indexer.ballCount);
+        SmartDashboard.putBoolean("Indexer Reached Max Capacity", indexer.reachedMaxCapacity);
+        SmartDashboard.putNumber("Ball Sensor", indexer.sensorRange);
+        SmartDashboard.putBoolean("is Transfering ball", indexer.transferingBallToIndexer);
+        SmartDashboard.putBoolean("Indexer Enterance switch state", indexer.indexerEntranceSwitch.get());
+        SmartDashboard.putBoolean("Indexer Exit switch state", indexer.indexerExitSwitch.get());
+
+    }
 
 }
