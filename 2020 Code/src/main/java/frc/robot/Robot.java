@@ -65,8 +65,6 @@ public class Robot extends TimedRobot
   private final int RPM_RANGE_MAX = 4300;
 
   private final double TARGET_VELOCITY = 20000;
-
-  boolean deployed = false;
   /**
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
@@ -93,7 +91,7 @@ public class Robot extends TimedRobot
 
     autonomousTimer = new Timer();
     
-    dataCollection.dataCollectionInit(dataArrayList); 
+    dataCollection.dataCollectionInit(dataArrayList);
   }
 
   @Override
@@ -151,7 +149,7 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    //DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     /*if (xboxDrv.getAButton())
     {
@@ -187,18 +185,17 @@ public class Robot extends TimedRobot
     
     if (xboxDrv.getAButton())
     {
-      deployed = true;
       Intake.deployIntake();
-      SmartDashboard.putBoolean("Deployed", deployed);
+    }
+    else
+    {
+      Intake.stopDeploying();
     }
 
-    else if (xboxDrv.getYButton())
+    if (xboxDrv.getYButton())
     {
-      deployed = false;
       Intake.stowIntake();
-      SmartDashboard.putBoolean("Deployed:", deployed);
     }
-    
     else
     {
       Intake.stopDeploying();
