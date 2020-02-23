@@ -164,6 +164,17 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      driveTrain.shiftToHighGear();
+    }
+
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.shiftToLowGear();
+    }
+
   }
   
   @Override

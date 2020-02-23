@@ -41,9 +41,9 @@ public class CatzDriveTrain
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-    private final double gearRatio     = 11/44;
-    private final double lowGearRatio  = 14/60;
-    private final double highGearRatio = 24/50;
+    private final double GEAR_RATION     = 11/44;
+    private final double LOW_GEAR_RATION  = 14/60;
+    private final double HIGH_GEAR_RATIO = 24/50;
     
     private final double integratedEncCountsPerRev = 2048;
 
