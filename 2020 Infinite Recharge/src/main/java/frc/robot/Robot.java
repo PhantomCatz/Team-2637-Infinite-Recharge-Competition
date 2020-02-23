@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -37,24 +38,40 @@ public class Robot extends TimedRobot
   public static CatzShooter    shooter;
   public static CatzClimber    climber;
 
-  public static DataCollection dataCollection;
+  public DataCollection dataCollection;
 
-  private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  private  XboxController xboxDrv;
+  private  XboxController xboxAux;
 
-  private static final int XBOX_DRV_PORT = 0;
-  private static final int XBOX_AUX_PORT = 1;
+  private final int XBOX_DRV_PORT = 0;
+  private final int XBOX_AUX_PORT = 1;
 
   public static PowerDistributionPanel pdp;
 
   public static Timer dataCollectionTimer;
   public static Timer autonomousTimer;
 
-  public static ArrayList<CatzLog> dataArrayList; 
+  public ArrayList<CatzLog> dataArrayList; 
+
+  public boolean testFlag = false;
+
+  public boolean check_boxL = false;
+  public boolean check_boxM = false;
+  public boolean check_boxR = false;
+
+	public boolean prev_boxL = false;
+	public boolean prev_boxM = false;
+	public boolean prev_boxR = false;
 
   @Override
   public void robotInit() 
   {
+    driveTrain = new CatzDriveTrain();
+    indexer    = new CatzIndexer();
+    shooter    = new CatzShooter();
+    intake     = new CatzIntake();
+    climber    = new CatzClimber();    
+    
     pdp = new PowerDistributionPanel();
 
     dataArrayList = new ArrayList<CatzLog>();
@@ -62,35 +79,68 @@ public class Robot extends TimedRobot
     dataCollection = new DataCollection();
 
     dataCollectionTimer = new Timer();
-
-    autonomousTimer = new Timer();
+    autonomousTimer     = new Timer();
     
     dataCollection.dataCollectionInit(dataArrayList);
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-    XboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+   
+    //create a path chooser
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, true);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, true);
+      
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, false);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, false);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, false);
+    
+    SmartDashboard.putBoolean("Use default autonomous?", false);
+  
   }
 
   @Override
   public void robotPeriodic() 
   {
+    //path chooser safety code
+    check_boxL = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORL, false);
+		check_boxM = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORM, false);
+		check_boxR = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORR, false);
+
+    if ((check_boxL != prev_boxL) && (check_boxL == true)) 
+    {
+			prev_boxL = check_boxL;
+			prev_boxM = false;
+			prev_boxR = false;
+    }
+     else if ((check_boxM != prev_boxM) && (check_boxM == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = check_boxM;
+			prev_boxR = false;
+    } 
+    else if ((check_boxR != prev_boxR) && (check_boxR == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = false;
+			prev_boxR = check_boxR;
+    }
+    
+		// Update display
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, prev_boxL);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
+
   }
 
   @Override
   public void autonomousInit() 
   {
+    dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
-
-    autonomousTimer.start();
-    while(autonomousTimer.get() <2)
-    {
-      driveTrain.arcadeDrive(1, 0);
-    }
-
-    driveTrain.arcadeDrive(0, 0);
   }
 
   @Override
@@ -101,9 +151,12 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
+    driveTrain.instantiateDifferentialDrive();
+
+    dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
   }
 
@@ -112,16 +165,16 @@ public class Robot extends TimedRobot
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
   }
-
+  
   @Override
   public void disabledInit() 
   {
     dataCollection.stopDataCollection();
     
-      for (int i = 0; i <dataArrayList.size();i++)
-      {
-         System.out.println(dataArrayList.get(i));
-      }  
+    for (int i = 0; i <dataArrayList.size();i++)
+    {
+       System.out.println(dataArrayList.get(i));
+    }  
 
     try 
     {

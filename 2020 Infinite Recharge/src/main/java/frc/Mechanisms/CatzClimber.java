@@ -9,8 +9,8 @@ import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 public class CatzClimber
 {
-    private CANSparkMax climbMtrCtrlA; 
-    private CANSparkMax climbMtrCtrlB;
+    public CANSparkMax climbMtrCtrlA; 
+    public CANSparkMax climbMtrCtrlB;
 
     private WPI_VictorSPX lightsaber;
 
