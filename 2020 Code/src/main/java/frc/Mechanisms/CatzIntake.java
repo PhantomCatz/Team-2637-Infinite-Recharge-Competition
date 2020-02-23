@@ -77,11 +77,11 @@ public class CatzIntake {
 
     public void deployIntake()
     {
-        intakeDeployMtrCtrl.set(0.5); // can change this value after testing
+        intakeDeployMtrCtrl.set(-0.23);
     }
 
     public void stowIntake()
     {
-        intakeDeployMtrCtrl.set(-0.5); // can change this value after testing
+        intakeDeployMtrCtrl.set(0.23);
     }
 }

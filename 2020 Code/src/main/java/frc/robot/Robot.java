@@ -153,37 +153,7 @@ public class Robot extends TimedRobot
   {
     DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
-    /*if (xboxDrv.getAButton())
-    {
-     //testPower = 0.7 ;
-     //Shooter.testShootPower(testPower);
-     Shooter.setTargetVelocity(TARGET_VELOCITY);
-    }
-
-    else if (xboxDrv.getXButton())
-    {
-      testPower += 0.02;
-      Shooter.testShootPower(testPower);
-      Timer.delay(0.7);
-    }
-    
-    else if (xboxDrv.getYButton())
-    {
-      testPower -= 0.02;
-      Shooter.testShootPower(testPower);
-      Timer.delay(0.7);
-    }
-
-    else if (xboxDrv.getBButton())
-    {
-      Shooter.stopMotor();
-    }*/
-
-
-    /*if (xboxDrv.getBButton())
-    {
-      Intake.stopRolling();
-    }*/
+    // ---------------------------------------------DEPLOY/STOW---------------------------------------------
     
     if (xboxDrv.getAButton())
     {
@@ -203,6 +173,8 @@ public class Robot extends TimedRobot
     {
       Intake.stopDeploying();
     }
+
+    // ---------------------------------------------ROLLER---------------------------------------------
 
     if(xboxDrv.getTriggerAxis(Hand.kLeft) >= 0.25)
     {
