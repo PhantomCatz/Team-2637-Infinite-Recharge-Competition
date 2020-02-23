@@ -75,7 +75,7 @@ public class CatzDriveTrain
     public final double PID_P = 0.25; // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
     public final double PID_D = 0;   // original value was 0.1
-    public final double PID_F = 0.02; // original value was 0.005
+    public final double PID_F = 0.02; // original value was 0.005    0.02 value for target speed 16000
 
     public CatzDriveTrain() 
     {
