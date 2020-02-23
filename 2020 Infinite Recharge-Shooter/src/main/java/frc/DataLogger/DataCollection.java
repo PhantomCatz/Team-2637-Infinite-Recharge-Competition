@@ -48,7 +48,7 @@ public class DataCollection
                                                            "dt-r-iev,dt-r-pwr,dt-r-mcI,dt-r-cle,dt-r-errD,dt-r-iAcc";
     private final String LOG_HDR_DRV_DISTANCE_PID = "Undefined";
     private final String LOG_HDR_DRV_TURN_PID = "Undefined";
-    private final String LOG_HDR_SHOOTER = "time, pdp-v, shtr-A-v, shtr-B-v, shtr-A-I, shtr-B-I, shtr-A-T, shtr-B-T, shtr-fwsv";
+    private final String LOG_HDR_SHOOTER = "time, pdp-v, shtr-A-v, shtr-B-v, shtr-A-I, shtr-B-I, shtr-A-T, shtr-B-T, shtr-fwsv, shtr-pwr";
 
 
     public String logStr;
@@ -167,18 +167,18 @@ public class DataCollection
             case LOG_ID_SHOOTER:
                 data1 = Robot.pdp.getVoltage();
 
-                data2 = Robot.Shooter.shtrMtrCtrlA.getMotorOutputVoltage();
-                data3 = Robot.Shooter.shtrMtrCtrlB.getMotorOutputVoltage();
+                data2 = Robot.shooter.shtrMtrCtrlA.getMotorOutputVoltage();
+                data3 = Robot.shooter.shtrMtrCtrlB.getMotorOutputVoltage();
 
-                data4 = Robot.Shooter.shtrMtrCtrlA.getStatorCurrent();
-                data5 = Robot.Shooter.shtrMtrCtrlB.getStatorCurrent();
+                data4 = Robot.shooter.shtrMtrCtrlA.getStatorCurrent();
+                data5 = Robot.shooter.shtrMtrCtrlB.getStatorCurrent();
 
-                data6 = Robot.Shooter.shtrMtrCtrlA.getTemperature();
-                data7 = Robot.Shooter.shtrMtrCtrlB.getTemperature();
+                data6 = Robot.shooter.shtrMtrCtrlA.getTemperature();
+                data7 = Robot.shooter.shtrMtrCtrlB.getTemperature();
 
-                data8 = Robot.Shooter.getFlywheelShaftVelocity();
+                data8 = Robot.shooter.getFlywheelShaftVelocity();
 
-                data9 = Math.abs(Robot.Shooter.shtrMtrCtrlA.get());
+                data9 = Math.abs(Robot.shooter.shtrMtrCtrlA.get());
                 break;
 
             default :

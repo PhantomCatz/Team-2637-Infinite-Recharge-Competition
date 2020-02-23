@@ -13,7 +13,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 
 
-public class CatzShooter
+public class CatzShooterProto
 {
     public WPI_TalonSRX shtrMtrCtrlA;
     public WPI_TalonSRX shtrMtrCtrlB;
@@ -62,7 +62,7 @@ public class CatzShooter
     private Thread shooterThread;
     
 
-    public CatzShooter()
+    public CatzShooterProto()
     {
         shtrMtrCtrlA = new WPI_TalonSRX(SHTR_MC_ID_A);
         shtrMtrCtrlB = new WPI_TalonSRX(SHTR_MC_ID_B);

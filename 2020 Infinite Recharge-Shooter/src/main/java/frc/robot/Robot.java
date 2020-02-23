@@ -46,8 +46,6 @@ public class Robot extends TimedRobot
   private static XboxController xboxDrv;
   //private static XboxController XboxAux;
 
-
-
   private static final int XBOX_DRV_PORT = 0;
   //private static final int XBOX_AUX_PORT = 1;
 
@@ -57,6 +55,12 @@ public class Robot extends TimedRobot
   public static Timer autonomousTimer;
 
   public static ArrayList<CatzLog> dataArrayList; 
+
+  private final int DPAD_UP = 0;
+  private final int DPAD_DOWN = 180;
+  private final int DPAD_LT = 270;
+  private final int DPAD_RT = 90;
+
  
   
 
@@ -64,15 +68,15 @@ public class Robot extends TimedRobot
   public void robotInit() 
   {
     
-    //dataArrayList       = new ArrayList<CatzLog>();
-   // dataCollection      = new DataCollection();
+    dataArrayList       = new ArrayList<CatzLog>();
+    dataCollection      = new DataCollection();
     dataCollectionTimer = new Timer();
 
    // autonomousTimer     = new Timer();
     
-   // dataCollection.dataCollectionInit(dataArrayList);
+    dataCollection.dataCollectionInit(dataArrayList);
 
-    //pdp = new PowerDistributionPanel();
+    pdp = new PowerDistributionPanel();
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
    // XboxAux = new XboxController(XBOX_AUX_PORT);
@@ -80,6 +84,7 @@ public class Robot extends TimedRobot
     //driveTrain = new CatzDriveTrain();
     //indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
+    
     //shooter2   = new CatzShooter2();
 
   }
@@ -123,8 +128,8 @@ public class Robot extends TimedRobot
 
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-//    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
-//    dataCollection.startDataCollection();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
+    dataCollection.startDataCollection();
 
   }
 
@@ -132,26 +137,39 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
     
-    if(xboxDrv.getBumper(Hand.kLeft)){
-      shooter.setTargetRPM(5000.0);
+    if(xboxDrv.getPOV() == DPAD_UP)
+    {
+      shooter.setTargetRPM(4500.0);
     }
 
-    if(xboxDrv.getBumper(Hand.kRight)){
-     shooter.setTargetRPM(6000.0)
+    if(xboxDrv.getPOV() == DPAD_LT)
+    {
+     shooter.setTargetRPM(5000.0);
     }
 
-   if(xboxDrv.getAButton()){
+    if(xboxDrv.getPOV() == DPAD_DOWN)
+    {
+      shooter.setTargetRPM(6000.0);
+    }
+
+
+   if(xboxDrv.getAButton())
+   {
      shooter.logTestData = true;
    }
-   if(xboxDrv.getBButton()){
+   if(xboxDrv.getBButton())
+   {
      shooter.logTestData = false;
    }
     
    
-   if(xboxDrv.getXButton()){
+   if(xboxDrv.getPOV() == DPAD_RT)
+   {
     shooter.shoot();
    }
-   if(xboxDrv.getYButton()){
+
+   if(xboxDrv.getStartButton())
+   {
     shooter.shooterOff();
    }
  
@@ -198,13 +216,13 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit() 
   {
-   /* dataCollection.stopDataCollection();
+    dataCollection.stopDataCollection();
     
     
-      for (int i = 0; i <dataArrayList.size();i++)
+    /*  for (int i = 0; i <dataArrayList.size();i++)
       {
          System.out.println(dataArrayList.get(i));
-      }  
+      }  */
     
 
     try 
@@ -214,7 +232,7 @@ public class Robot extends TimedRobot
     {
       e.printStackTrace();
     } 
-    */
+    
   }
 
 }
