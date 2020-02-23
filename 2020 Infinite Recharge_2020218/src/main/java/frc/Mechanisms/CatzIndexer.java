@@ -40,11 +40,12 @@ public class CatzIndexer
 
     private final double BELT_SPEED = 0.4;
     private final double BALL_IN_RANGE_THRESHOLD = 6.0;
-    public double sensorRange = 0.0;
-    public int ballCount = 0;
+    public double sensorRange = 999.0;
 
-    private final boolean BALL_NOT_PRESENT = true;
-    private final boolean BALL_PRESENT = false; 
+    public int ballCount = 0;
+    public final int MAX_NUM_BALLS = 5; //
+
+    private final boolean BALL_PRESENT = false; //Bump switch pressed reads false, not pressed reads true
 
     //public static ArrayList<Double> indexerArrayList;  
 
@@ -62,53 +63,12 @@ public class CatzIndexer
         indexerMtrCtrl.restoreFactoryDefaults();
         indexerMtrCtrl.setIdleMode(IdleMode.kBrake);
         indexerMtrCtrl.setSmartCurrentLimit(INDEXER_MC_CURRENT_LIMIT);
+        //indexerMtrCtrl.set(0.0);
 
         ballSensor = new Ultrasonic(BALL_SENSOR_INPUT_DIO_PORT,BALL_SENSOR_OUTPUT_DIO_PORT);//(input,output)
         ballSensor.setAutomaticMode(true);
 
         //indexerArrayList = new ArrayList<Double>();
-
-    }
-
-    public void runIndexer()
-    {
-        indexerEntranceSwitchState = indexerEntranceSwitch.get();
-        indexerExitSwitchState     = indexerExitSwitch.get();
-
-        if(shooterRunning)
-        {
-            indexerMtrCtrl.set(BELT_SPEED);
-            ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
-        }
-        else 
-        {
-            //todo: make everything easier to read and simplify logic to the best of my ability
-            if(!isBallInIntexer() && !transferingBallToIndexer && !indexerEntranceSwitchState)
-            {
-                indexerMtrCtrl.set(0);
-            }
-            else if(isBallInIntexer())
-            {
-                transferingBallToIndexer = true;
-                indexerMtrCtrl.set(BELT_SPEED);
-            }
-            else if (!isBallInIntexer() && transferingBallToIndexer && !indexerEntranceSwitchState)
-            {
-                transferingBallToIndexer = true;
-                indexerMtrCtrl.set(BELT_SPEED);
-            }
-            else if (!isBallInIntexer() && transferingBallToIndexer && indexerEntranceSwitchState)
-            {
-                ballCount ++;
-                transferingBallToIndexer = false;
-                indexerMtrCtrl.set(0);
-            }
-        }
-
-        if(ballCount >= 5)
-        {
-            reachedMaxCapacity = true;
-        }
 
     }
 
@@ -129,6 +89,7 @@ public class CatzIndexer
             {
                 //indexerArrayList.add(1.0);
                 indexerMtrCtrl.set(BELT_SPEED);
+                System.out.println("1");
                 ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
             }
             else 
@@ -148,7 +109,7 @@ public class CatzIndexer
                     
                     //indexerArrayList.add(sensorRange);
     
-    
+                    //System.out.println(sensorRange + ", " + BALL_IN_RANGE_THRESHOLD);
                     if(sensorRange < BALL_IN_RANGE_THRESHOLD)
                     { 
                         //indexerArrayList.add(21.0);
@@ -156,6 +117,7 @@ public class CatzIndexer
                         //indexTime2.reset();                  //Indexer Motor Timeout
                         transferingBallToIndexer = true;
                         indexerMtrCtrl.set(BELT_SPEED);
+                        //System.out.println("2," +sensorRange);
                     }
                     else 
                     {
@@ -169,7 +131,7 @@ public class CatzIndexer
                                 indexerMtrCtrl.set(0);
                                 transferingBallToIndexer = false;
                                 ballCount ++;
-                                if(ballCount >= 5)
+                                if(ballCount >= MAX_NUM_BALLS)
                                 {
                                     //indexerArrayList.add(30.0);
                                     reachedMaxCapacity = true;
@@ -249,9 +211,13 @@ public class CatzIndexer
            System.out.println(indexerArrayList.get(i));
         }  
     }*/
-    public void indexerMotorCheck()
+    public void indexerMotorOnly()
     {
-        indexerMtrCtrl.set(0.5);
+        indexerMtrCtrl.set(BELT_SPEED);
     }
 
+    public void indexerMotorOff()
+    {
+        indexerMtrCtrl.set(0.0);
+    }
 }

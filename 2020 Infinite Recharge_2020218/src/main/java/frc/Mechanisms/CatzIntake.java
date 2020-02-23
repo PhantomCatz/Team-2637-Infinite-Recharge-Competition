@@ -22,7 +22,7 @@ public class CatzIntake
 
     public final int INTAKE_DEPLOY_MC_CAN_ID = 12;
 
-    public final int INTAKE_FIGURE_8_MC_PDP_PORT   = 4;
+    public final int INTAKE_FIGURE_8_MC_PDP_PORT   = 5;
     public final int INTAKE_ROLLER_MC_PDP_PORT   = 9;   
 
     public final int INTAKE_DEPLOY_MC_PDP_PORT   = 11;
@@ -48,6 +48,7 @@ public class CatzIntake
 
         //set the follow mode 
         intakeFigure8MtrCtrl.follow(intakeRollerMtrCtrl);
+        intakeFigure8MtrCtrl.setInverted(true);
 
         //Set roller MC to coast mode
         intakeFigure8MtrCtrl.setNeutralMode(NeutralMode.Coast);
@@ -64,6 +65,7 @@ public class CatzIntake
     public void rollIntake(double power)
     {
         intakeRollerMtrCtrl.set(ControlMode.PercentOutput, power); // can change this value after testing
+        
     }
 
     public void stopRolling()

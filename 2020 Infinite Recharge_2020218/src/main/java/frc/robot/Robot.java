@@ -125,8 +125,16 @@ public class Robot extends TimedRobot
   {
   
     //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-
-    //indexer.indexerMotorCheck();
+    if(xboxDrv.getYButton())
+    {
+      indexer.indexerMotorOnly();
+      indexer.stopIndexerThread();
+    }
+    if(xboxDrv.getXButton())
+    {
+      indexer.indexerMotorOff();
+      indexer.startIndexerThread();
+    }
   
     if(xboxDrv.getAButton())
     {
