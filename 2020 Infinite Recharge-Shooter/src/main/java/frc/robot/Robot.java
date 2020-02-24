@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.DataLogger.CatzLog;
@@ -44,10 +45,10 @@ public class Robot extends TimedRobot
   public static DataCollection dataCollection;
 
   private static XboxController xboxDrv;
-  //private static XboxController XboxAux;
+  public static XboxController xboxAux;
 
   private static final int XBOX_DRV_PORT = 0;
-  //private static final int XBOX_AUX_PORT = 1;
+  public static final int XBOX_AUX_PORT = 1;
 
   public static PowerDistributionPanel pdp;
 
@@ -61,7 +62,7 @@ public class Robot extends TimedRobot
   private final int DPAD_LT = 270;
   private final int DPAD_RT = 90;
 
- 
+  double[] velocityData2 = {1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0};
   
 
   @Override
@@ -79,7 +80,7 @@ public class Robot extends TimedRobot
     pdp = new PowerDistributionPanel();
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-   // XboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
 
     //driveTrain = new CatzDriveTrain();
     //indexer    = new CatzIndexer();
@@ -93,7 +94,8 @@ public class Robot extends TimedRobot
   public void robotPeriodic() 
   {
   
-    shooter.displaySmartDashboard();
+    shooter.debugSmartDashboard();
+    shooter.smartdashboard();
 
      //System.out.println("LT : " + driveTrain.getSrxMagLT() + "RT : " + driveTrain.getSrxMagRT());
   }
@@ -137,81 +139,55 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
     
-    if(xboxDrv.getPOV() == DPAD_UP)
+    if(xboxAux.getPOV() == DPAD_UP)
     {
       shooter.setTargetRPM(4500.0);
     }
 
-    if(xboxDrv.getPOV() == DPAD_LT)
+    if(xboxAux.getPOV() == DPAD_LT)
     {
      shooter.setTargetRPM(5000.0);
     }
 
-    if(xboxDrv.getPOV() == DPAD_DOWN)
+    if(xboxAux.getPOV() == DPAD_DOWN)
     {
       shooter.setTargetRPM(6000.0);
     }
 
 
-   if(xboxDrv.getAButton())
+   if(xboxAux.getAButton())
    {
      shooter.logTestData = true;
    }
-   if(xboxDrv.getBButton())
+   if(xboxAux.getBButton())
    {
      shooter.logTestData = false;
    }
     
    
-   if(xboxDrv.getPOV() == DPAD_RT)
+   if(xboxAux.getPOV() == DPAD_RT)
    {
     shooter.shoot();
    }
 
-   if(xboxDrv.getStartButton())
+   if(xboxAux.getStartButton())
    {
     shooter.shooterOff();
    }
- 
-     /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    if(xboxDrv.getBumper(Hand.kLeft)){
-      driveTrain.retractGearShift();
-    }
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      driveTrain.deployGearShift();
-    }*/
-    
-    
-    if (xboxDrv.getAButton())
-    {
-     //Shooter.shooterPower = 0.7 ;
-     //Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
-     //Shooter.setTargetVelocity(20000);
-    }
-/*
-    else if (xboxDrv.getXButton())
-    {
-      Shooter.shooterPower += 0.02;
-      Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
-      Timer.delay(0.5);
-    }
-    
-    else if (xboxDrv.getYButton())
-    {
-      Shooter.shooterPower -= 0.02;
-      Shooter.shtrMtrCtrlA.set(Shooter.shooterPower);
-      Timer.delay(0.5);
-    }
-*/
-   // else if (xboxDrv.getBButton())
-    //{
-    //  Shooter.shtrMtrCtrlA.set(0);
-    //}
-  }
   
-    //Intake.rollIntake(xboxDrv.getY(Hand.kLeft));
-   // Intake.deployIntake(xboxDrv.getY(Hand.kRight));
+   if(xboxAux.getYButton())
+   {
+
+   }
+
+   if(xboxAux.getXButton())
+   {
+
+  }
+
+
+  }  //End of Teleop Periodic
+ 
   
   @Override
   public void disabledInit() 
