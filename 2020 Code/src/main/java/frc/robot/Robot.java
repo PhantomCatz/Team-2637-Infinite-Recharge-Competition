@@ -35,7 +35,7 @@ public class Robot extends TimedRobot
   //public static CatzDriveTrain driveTrain; 
 
   private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  private static XboxController xboxAux;
   public static PowerDistributionPanel pdp;
 
   public static Timer t;
@@ -66,7 +66,6 @@ public class Robot extends TimedRobot
 
   private final double TARGET_VELOCITY = 20000;
 
-  boolean deployed = false;
   /**
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
@@ -75,7 +74,7 @@ public class Robot extends TimedRobot
   public void robotInit() 
   {
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-    XboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
 
     autonomousTimer = new Timer();
 
@@ -99,20 +98,8 @@ public class Robot extends TimedRobot
   @Override
   public void robotPeriodic() 
   {
-   SmartDashboard.putNumber("RPM:",    Shooter.getFlywheelShaftVelocity() );
-   SmartDashboard.putNumber("Counts",  Shooter.getFlywheelShaftPosition() );
-   SmartDashboard.putNumber("Test Power",    testPower);
-   SmartDashboard.putBoolean("Ready to Fire", readyToFire);
-
-   // code to signal when the rpm is within range
-   if (Math.abs(Shooter.getFlywheelShaftVelocity()) > RPM_RANGE_MIN && Math.abs(Shooter.getFlywheelShaftVelocity()) < RPM_RANGE_MAX)
-   {
-      readyToFire = true;
-   }
-
-   SmartDashboard.putNumber("RPM2:",    Shooter.getFlywheelShaftVelocity() );
-   SmartDashboard.putNumber("Counts2",  Shooter.getFlywheelShaftPosition() );
-   SmartDashboard.putNumber("Test Power2",    testPower);
+    SmartDashboard.putBoolean("Deployed:", Intake.getDeployedLimitSwitchState());
+    SmartDashboard.putBoolean("Stowed:",   Intake.getStowedLimitSwitchState());
   }
 
   @Override
@@ -151,38 +138,73 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
+    // ---------------------------------------------DriveTrain---------------------------------------------
+
     DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-
-    // ---------------------------------------------DEPLOY/STOW---------------------------------------------
-    
-    if (xboxDrv.getAButton())
-    {
-      deployed = true;
-      Intake.deployIntake();
-      SmartDashboard.putBoolean("Deployed", deployed);
-    }
-
-    else if (xboxDrv.getYButton())
-    {
-      deployed = false;
-      Intake.stowIntake();
-      SmartDashboard.putBoolean("Deployed:", deployed);
-    }
-    
-    else
-    {
-      Intake.stopDeploying();
-    }
 
     // ---------------------------------------------ROLLER---------------------------------------------
 
-    if(xboxDrv.getTriggerAxis(Hand.kLeft) >= 0.25)
+    if(xboxAux.getTriggerAxis(Hand.kLeft) >= 0.25)
     {
       Intake.rollIntake();
     }
     else
     {
       Intake.stopRolling();
+    }
+
+    // ---------------------------------------------Intake Limit Switches---------------------------------------------   
+
+    if (Intake.getDeployedLimitSwitchState() == true)
+    {
+      Intake.deployed = true;
+    }
+    else
+    {
+      Intake.deployed = false;
+    }
+
+    if (Intake.getStowedLimitSwitchState() == true)
+    {
+      Intake.stowed = true;
+    }
+    else
+    {
+      Intake.stowed = false;
+    }
+
+    // ---------------------------------------------DEPLOY/STOW---------------------------------------------
+    
+    if (xboxDrv.getAButton() && Intake.deployed == false)
+    {
+      Intake.deployIntake();
+    }
+
+    else if (xboxDrv.getYButton() && Intake.stowed == false)
+    {
+      Intake.stowIntake();
+    }
+
+    // ---------------------------------------------Drive Straight---------------------------------------------
+
+    if(xboxDrv.getBButton())
+    {
+      DriveTrain.setTargetVelocity(0);
+    }
+
+    if(xboxDrv.getXButton())
+    {
+      DriveTrain.setTargetVelocity(16000);
+    }
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      DriveTrain.shiftToHighGear();
+    }
+
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      DriveTrain.shiftToLowGear();
     }
   }
 
