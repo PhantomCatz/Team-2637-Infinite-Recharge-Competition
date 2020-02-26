@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -40,7 +41,7 @@ public class Robot extends TimedRobot
   public static DataCollection dataCollection;
 
   private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  private static XboxController xboxAux;
 
   private static final int XBOX_DRV_PORT = 0;
   private static final int XBOX_AUX_PORT = 1;
@@ -55,9 +56,6 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
-<<<<<<< Updated upstream
-    pdp = new PowerDistributionPanel();
-=======
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
     //shooter    = new CatzShooter();
@@ -65,26 +63,17 @@ public class Robot extends TimedRobot
     //climber    = new CatzClimber();    
     
     //pdp = new PowerDistributionPanel();
->>>>>>> Stashed changes
 
     /*dataArrayList = new ArrayList<CatzLog>();
 
     dataCollection = new DataCollection();
 
     dataCollectionTimer = new Timer();
-<<<<<<< Updated upstream
-
-    autonomousTimer = new Timer();
-=======
     autonomousTimer     = new Timer();*/
->>>>>>> Stashed changes
     
     //dataCollection.dataCollectionInit(dataArrayList);
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-<<<<<<< Updated upstream
-    XboxAux = new XboxController(XBOX_AUX_PORT);
-=======
     xboxAux = new XboxController(XBOX_AUX_PORT);
    
     //create a path chooser
@@ -99,17 +88,13 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean("Use default autonomous?", false);
     */
     indexer.startIndexerThread();
->>>>>>> Stashed changes
   }
 
   @Override
   public void robotPeriodic() 
   {
-<<<<<<< Updated upstream
-=======
     SmartDashboard.putBoolean("exit",     indexer.indexerExitSwitch.get());
     SmartDashboard.putBoolean("entrance", indexer.indexerEntranceSwitch.get());
-
     /*
     //path chooser safety code
     check_boxL = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORL, false);
@@ -140,48 +125,27 @@ public class Robot extends TimedRobot
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
     */
->>>>>>> Stashed changes
   }
 
   @Override
   public void autonomousInit() 
   {
-<<<<<<< Updated upstream
-    dataCollectionTimer.reset();
-    dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
-    dataCollection.startDataCollection();
-
-    autonomousTimer.start();
-    while(autonomousTimer.get() <2)
-    {
-      driveTrain.arcadeDrive(1, 0);
-    }
-
-    driveTrain.arcadeDrive(0, 0);
-=======
     /*dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();*/
->>>>>>> Stashed changes
   }
 
   @Override
   public void autonomousPeriodic() 
   {
+    
   }
 
   @Override
   public void teleopInit() 
   {
-<<<<<<< Updated upstream
-    dataCollectionTimer.reset();
-    dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
-    dataCollection.startDataCollection();
-=======
     //driveTrain.instantiateDifferentialDrive();
     /*
     dataCollection.dataCollectionInit(dataArrayList);
@@ -189,15 +153,12 @@ public class Robot extends TimedRobot
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();*/
->>>>>>> Stashed changes
   }
 
   @Override
   public void teleopPeriodic()
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-<<<<<<< Updated upstream
-=======
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -240,10 +201,6 @@ public class Robot extends TimedRobot
       indexer.indexerMotorOff();
       indexer.startIndexerThread();
     }
-
-
-
->>>>>>> Stashed changes
   }
 
   @Override

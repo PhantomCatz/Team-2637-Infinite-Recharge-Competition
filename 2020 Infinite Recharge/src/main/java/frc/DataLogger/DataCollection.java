@@ -163,14 +163,9 @@ public class DataCollection
                 data10 = Robot.driveTrain.getSrxMagPosition("RT");
             
                 break;
-<<<<<<< Updated upstream
-=======
                 
             case LOG_ID_SHOOTER:
                 //data1 = Robot.pdp.getVoltage();
->>>>>>> Stashed changes
-
-            case LOG_ID_SHOOTER:
                 break;
 
             default :
