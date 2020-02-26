@@ -67,11 +67,18 @@ public class CatzIndexer
             //todo: make everything easier to read and simplify logic to the best of my ability
             if(!isBallInIntake() && !transferingBallToIndexer && !indexerEntranceBumpSwitchState)
             {
+<<<<<<< Updated upstream
                 indexerMtrCtrl.set(0);
             }
             else if(isBallInIntake()){
                 transferingBallToIndexer = true;
                 indexerMtrCtrl.set(beltSpeed);
+=======
+                //indexerArrayList.add(1.0);
+                indexerMtrCtrl.set(BELT_SPEED);
+                //System.out.println("1");
+                ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
+>>>>>>> Stashed changes
             }
             else if (!isBallInIntake() && transferingBallToIndexer && !indexerEntranceBumpSwitchState)
             {

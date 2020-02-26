@@ -8,10 +8,17 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+<<<<<<< Updated upstream
 public class CatzIntake
 {
     private WPI_VictorSPX intakeRollerMtrCtrlA;
     private WPI_TalonSRX  intakeRollerMtrCtrlB;
+=======
+public class CatzIntake 
+{
+    private WPI_VictorSPX intakeFigure8MtrCtrl;
+    private WPI_TalonSRX intakeRollerMtrCtrl;
+>>>>>>> Stashed changes
 
     private CANSparkMax  intakeDeployMtrCtrl; 
 
@@ -27,8 +34,14 @@ public class CatzIntake
 
     public CatzIntake()
     {
+<<<<<<< Updated upstream
         intakeRollerMtrCtrlA = new WPI_VictorSPX(INTAKE_ROLLER_A_MC_CAN_ID);
         intakeRollerMtrCtrlB = new WPI_TalonSRX(INTAKE_ROLLER_B_MC_CAN_ID);
+=======
+        //intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID);
+        intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID);
+        intakeRollerMtrCtrl = new WPI_TalonSRX (INTAKE_ROLLER_MC_CAN_ID);
+>>>>>>> Stashed changes
 
         intakeDeployMtrCtrl = new CANSparkMax(INTAKE_ROLLER_B_MC_CAN_ID, MotorType.kBrushless);
 
@@ -50,7 +63,23 @@ public class CatzIntake
 
     public void rollIntake()
     {
+<<<<<<< Updated upstream
         intakeRollerMtrCtrlB.set(ControlMode.PercentOutput, -0.72); // can change this value after testing
+=======
+        intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, 0.5);
+        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, -0.5);
+    }
+
+    public void stopRolling()
+    {
+        intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, 0.0);
+        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, 0.0);
+    }
+
+    public void stopDeploying()
+    {
+        intakeDeployMtrCtrl.set(0);
+>>>>>>> Stashed changes
     }
 
     public void deployIntake()

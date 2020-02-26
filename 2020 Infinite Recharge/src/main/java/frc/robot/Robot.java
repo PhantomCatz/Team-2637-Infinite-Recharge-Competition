@@ -34,8 +34,8 @@ public class Robot extends TimedRobot
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
-  public static CatzShooter    shooter;
-  public static CatzClimber    climber;
+  //public static CatzShooter    shooter;
+  //public static CatzClimber    climber;
 
   public static DataCollection dataCollection;
 
@@ -45,7 +45,7 @@ public class Robot extends TimedRobot
   private static final int XBOX_DRV_PORT = 0;
   private static final int XBOX_AUX_PORT = 1;
 
-  public static PowerDistributionPanel pdp;
+  //public static PowerDistributionPanel pdp;
 
   public static Timer dataCollectionTimer;
   public static Timer autonomousTimer;
@@ -55,30 +55,98 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
+<<<<<<< Updated upstream
     pdp = new PowerDistributionPanel();
+=======
+    driveTrain = new CatzDriveTrain();
+    indexer    = new CatzIndexer();
+    //shooter    = new CatzShooter();
+    intake     = new CatzIntake();
+    //climber    = new CatzClimber();    
+    
+    //pdp = new PowerDistributionPanel();
+>>>>>>> Stashed changes
 
-    dataArrayList = new ArrayList<CatzLog>();
+    /*dataArrayList = new ArrayList<CatzLog>();
 
     dataCollection = new DataCollection();
 
     dataCollectionTimer = new Timer();
+<<<<<<< Updated upstream
 
     autonomousTimer = new Timer();
+=======
+    autonomousTimer     = new Timer();*/
+>>>>>>> Stashed changes
     
-    dataCollection.dataCollectionInit(dataArrayList);
+    //dataCollection.dataCollectionInit(dataArrayList);
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
+<<<<<<< Updated upstream
     XboxAux = new XboxController(XBOX_AUX_PORT);
+=======
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+   
+    //create a path chooser
+    /*SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, true);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, true);
+      
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, false);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, false);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, false);
+    
+    SmartDashboard.putBoolean("Use default autonomous?", false);
+    */
+    indexer.startIndexerThread();
+>>>>>>> Stashed changes
   }
 
   @Override
   public void robotPeriodic() 
   {
+<<<<<<< Updated upstream
+=======
+    SmartDashboard.putBoolean("exit",     indexer.indexerExitSwitch.get());
+    SmartDashboard.putBoolean("entrance", indexer.indexerEntranceSwitch.get());
+
+    /*
+    //path chooser safety code
+    check_boxL = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORL, false);
+		check_boxM = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORM, false);
+		check_boxR = SmartDashboard.getBoolean(CatzConstants.POSITION_SELECTORR, false);
+
+    if ((check_boxL != prev_boxL) && (check_boxL == true)) 
+    {
+			prev_boxL = check_boxL;
+			prev_boxM = false;
+			prev_boxR = false;
+    }
+     else if ((check_boxM != prev_boxM) && (check_boxM == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = check_boxM;
+			prev_boxR = false;
+    } 
+    else if ((check_boxR != prev_boxR) && (check_boxR == true)) 
+    {
+			prev_boxL = false;
+			prev_boxM = false;
+			prev_boxR = check_boxR;
+    }
+    
+		// Update display
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, prev_boxL);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
+		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
+    */
+>>>>>>> Stashed changes
   }
 
   @Override
   public void autonomousInit() 
   {
+<<<<<<< Updated upstream
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
@@ -91,6 +159,13 @@ public class Robot extends TimedRobot
     }
 
     driveTrain.arcadeDrive(0, 0);
+=======
+    /*dataCollection.dataCollectionInit(dataArrayList);
+    dataCollectionTimer.reset();
+    dataCollectionTimer.start();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.startDataCollection();*/
+>>>>>>> Stashed changes
   }
 
   @Override
@@ -101,22 +176,80 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
+<<<<<<< Updated upstream
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_TRAIN);
     dataCollection.startDataCollection();
+=======
+    //driveTrain.instantiateDifferentialDrive();
+    /*
+    dataCollection.dataCollectionInit(dataArrayList);
+    dataCollectionTimer.reset();
+    dataCollectionTimer.start();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.startDataCollection();*/
+>>>>>>> Stashed changes
   }
 
   @Override
   public void teleopPeriodic()
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+<<<<<<< Updated upstream
+=======
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      driveTrain.shiftToHighGear();
+    }
+    else if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.shiftToLowGear();
+    }
+
+    if(xboxDrv.getStickButton(Hand.kRight))
+    {
+      intake.deployIntake();
+    }
+    else if(xboxDrv.getStickButton(Hand.kLeft))
+    {
+      intake.stowIntake();
+    }
+    else
+    {
+      intake.stopDeploying();
+    }
+
+    if(xboxAux.getAButton())
+    {
+      intake.rollIntake();
+    }
+    else if(xboxAux.getBButton())
+    {
+      intake.stopRolling();
+    }
+
+    if(xboxAux.getXButtonPressed())
+    {
+      indexer.stopIndexerThread();
+      indexer.indexerMotorOnly();
+    }
+    else if(xboxAux.getYButtonPressed())
+    {
+      indexer.indexerMotorOff();
+      indexer.startIndexerThread();
+    }
+
+
+
+>>>>>>> Stashed changes
   }
 
   @Override
   public void disabledInit() 
   {
-    dataCollection.stopDataCollection();
+    /*dataCollection.stopDataCollection();
     
       for (int i = 0; i <dataArrayList.size();i++)
       {
@@ -129,7 +262,7 @@ public class Robot extends TimedRobot
     } catch (Exception e) 
     {
       e.printStackTrace();
-    } 
+    } */
   }
 
 }
