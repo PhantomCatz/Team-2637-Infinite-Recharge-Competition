@@ -35,7 +35,7 @@ public class Robot extends TimedRobot
   //public static CatzDriveTrain driveTrain; 
 
   private static XboxController xboxDrv;
-  private static XboxController XboxAux;
+  private static XboxController xboxAux;
   public static PowerDistributionPanel pdp;
 
   public static Timer t;
@@ -65,6 +65,7 @@ public class Robot extends TimedRobot
   private final int RPM_RANGE_MAX = 4300;
 
   private final double TARGET_VELOCITY = 20000;
+
   /**
    * This function is run when the robot is first started up and should be used
    * for any initialization code.
@@ -73,7 +74,7 @@ public class Robot extends TimedRobot
   public void robotInit() 
   {
     xboxDrv = new XboxController(XBOX_DRV_PORT);
-    XboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
 
     autonomousTimer = new Timer();
 
@@ -91,26 +92,14 @@ public class Robot extends TimedRobot
 
     autonomousTimer = new Timer();
     
-    dataCollection.dataCollectionInit(dataArrayList);
+    dataCollection.dataCollectionInit(dataArrayList); 
   }
 
   @Override
   public void robotPeriodic() 
   {
-   SmartDashboard.putNumber("RPM:",    Shooter.getFlywheelShaftVelocity() );
-   SmartDashboard.putNumber("Counts",  Shooter.getFlywheelShaftPosition() );
-   SmartDashboard.putNumber("Test Power",    testPower);
-   SmartDashboard.putBoolean("Ready to Fire", readyToFire);
-
-   // code to signal when the rpm is within range
-   if (Math.abs(Shooter.getFlywheelShaftVelocity()) > RPM_RANGE_MIN && Math.abs(Shooter.getFlywheelShaftVelocity()) < RPM_RANGE_MAX)
-   {
-      readyToFire = true;
-   }
-
-   SmartDashboard.putNumber("RPM2:",    Shooter.getFlywheelShaftVelocity() );
-   SmartDashboard.putNumber("Counts2",  Shooter.getFlywheelShaftPosition() );
-   SmartDashboard.putNumber("Test Power2",    testPower);
+    SmartDashboard.putBoolean("Deployed:", Intake.getDeployedLimitSwitchState());
+    SmartDashboard.putBoolean("Stowed:",   Intake.getStowedLimitSwitchState());
   }
 
   @Override
@@ -149,65 +138,73 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic() 
   {
-    //DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    // ---------------------------------------------DriveTrain---------------------------------------------
 
-    /*if (xboxDrv.getAButton())
-    {
-     //testPower = 0.7 ;
-     //Shooter.testShootPower(testPower);
-     Shooter.setTargetVelocity(TARGET_VELOCITY);
-    }
+    DriveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
-    else if (xboxDrv.getXButton())
-    {
-      testPower += 0.02;
-      Shooter.testShootPower(testPower);
-      Timer.delay(0.7);
-    }
-    
-    else if (xboxDrv.getYButton())
-    {
-      testPower -= 0.02;
-      Shooter.testShootPower(testPower);
-      Timer.delay(0.7);
-    }
+    // ---------------------------------------------ROLLER---------------------------------------------
 
-    else if (xboxDrv.getBButton())
-    {
-      Shooter.stopMotor();
-    }*/
-
-
-    /*if (xboxDrv.getBButton())
-    {
-      Intake.stopRolling();
-    }*/
-    
-    if (xboxDrv.getAButton())
-    {
-      Intake.deployIntake();
-    }
-    else
-    {
-      Intake.stopDeploying();
-    }
-
-    if (xboxDrv.getYButton())
-    {
-      Intake.stowIntake();
-    }
-    else
-    {
-      Intake.stopDeploying();
-    }
-
-    if(xboxDrv.getTriggerAxis(Hand.kLeft) >= 0.25)
+    if(xboxAux.getTriggerAxis(Hand.kLeft) >= 0.25)
     {
       Intake.rollIntake();
     }
     else
     {
       Intake.stopRolling();
+    }
+
+    // ---------------------------------------------Intake Limit Switches---------------------------------------------   
+
+    if (Intake.getDeployedLimitSwitchState() == true)
+    {
+      Intake.deployed = true;
+    }
+    else
+    {
+      Intake.deployed = false;
+    }
+
+    if (Intake.getStowedLimitSwitchState() == true)
+    {
+      Intake.stowed = true;
+    }
+    else
+    {
+      Intake.stowed = false;
+    }
+
+    // ---------------------------------------------DEPLOY/STOW---------------------------------------------
+    
+    if (xboxDrv.getAButton() && Intake.deployed == false)
+    {
+      Intake.deployIntake();
+    }
+
+    else if (xboxDrv.getYButton() && Intake.stowed == false)
+    {
+      Intake.stowIntake();
+    }
+
+    // ---------------------------------------------Drive Straight---------------------------------------------
+
+    if(xboxDrv.getBButton())
+    {
+      DriveTrain.setTargetVelocity(0);
+    }
+
+    if(xboxDrv.getXButton())
+    {
+      DriveTrain.setTargetVelocity(16000);
+    }
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      DriveTrain.shiftToHighGear();
+    }
+
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      DriveTrain.shiftToLowGear();
     }
   }
 
