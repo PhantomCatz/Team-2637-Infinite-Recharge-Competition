@@ -7,7 +7,24 @@
 
 package frc.robot;
 
+import java.util.ArrayList;
+
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode.PixelFormat;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.DataLogger.CatzLog;
+import frc.DataLogger.DataCollection;
+import frc.Mechanisms.CatzClimber;
+import frc.Mechanisms.CatzDriveTrain;
+import frc.Mechanisms.CatzIndexer;
+import frc.Mechanisms.CatzIntake;
+import frc.Mechanisms.CatzShooter;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -16,20 +33,92 @@ import edu.wpi.first.wpilibj.TimedRobot;
  * creating this project, you must also update the build.gradle file in the
  * project.
  */
-public class Robot extends TimedRobot 
+public class Robot extends TimedRobot
 {
-  /**
-   * This function is run when the robot is first started up and should be used
-   * for any initialization code.
-   */
+  public static CatzDriveTrain driveTrain;
+  public static CatzIntake     intake;
+  public static CatzIndexer    indexer;
+  public static CatzShooter    shooter;
+  public static CatzClimber    climber;
+
+  private UsbCamera camera;
+
+  public static DataCollection dataCollection;
+
+  private static XboxController xboxDrv;
+  private static XboxController xboxAux;
+
+  private static final int XBOX_DRV_PORT = 0;
+  private static final int XBOX_AUX_PORT = 1;
+
+  public static PowerDistributionPanel pdp;
+
+  public static Timer dataCollectionTimer;
+  public static Timer autonomousTimer;
+
+  public static ArrayList<CatzLog> dataArrayList; 
+
+  public boolean testFlag = false;
+
+  private static double cameraResolutionWidth = 320;
+  private static double cameraResolutionHeight = 240;
+  private static double cameraFPS = 15;
+
+  private final int RPM_RANGE_MIN = 4100;
+  private final int RPM_RANGE_MAX = 4300;
+
   @Override
   public void robotInit() 
   {
+    pdp = new PowerDistributionPanel();
+
+    dataArrayList = new ArrayList<CatzLog>();
+
+    dataCollection = new DataCollection();
+
+    dataCollectionTimer = new Timer();
+
+    autonomousTimer = new Timer();
+
+    camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setFPS(15);
+    camera.setResolution(320, 240);
+    camera.setPixelFormat(PixelFormat.kMJPEG);
+    
+    //dataCollection.dataCollectionInit(dataArrayList);
+
+    /*xboxDrv = new XboxController(XBOX_DRV_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+
+    driveTrain = new CatzDriveTrain();
+    indexer    = new CatzIndexer();
+    shooter    = new CatzShooter();
+    intake     = new CatzIntake();
+    climber    = new CatzClimber(); */
+  }
+
+  @Override
+  public void robotPeriodic() 
+  {
+   // indexer.runIndexer2();
+    //indexer.showSmartDashboard();
+
+    /*SmartDashboard.putNumber("RPM", shooter.getFlywheelShaftVelocity());
+    SmartDashboard.putNumber("Power", shooter.getShooterPower());
+    SmartDashboard.putNumber("Target Velocity", shooter.getTargetVelocity());*/
+
+    camera.setResolution((int)cameraResolutionWidth, (int)cameraResolutionHeight);
+    camera.setFPS((int)cameraFPS);
   }
 
   @Override
   public void autonomousInit() 
   {
+    dataCollection.dataCollectionInit(dataArrayList);
+    dataCollectionTimer.reset();
+    dataCollectionTimer.start();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.startDataCollection();
   }
 
   @Override
@@ -40,21 +129,76 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
+    dataCollection.dataCollectionInit(dataArrayList);
+    dataCollectionTimer.reset();
+    dataCollectionTimer.start();
+    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.startDataCollection();
   }
 
   @Override
   public void teleopPeriodic()
-{
-  }
-
-  @Override
-  public void testInit() 
   {
-  }
 
+    /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+
+    if(xboxDrv.getBButton())
+    {
+      driveTrain.setTargetVelocity(0);
+    }
+    if(xboxDrv.getAButton())
+    {
+      driveTrain.setTargetVelocity(8000);
+    }
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      driveTrain.shiftToHighGear();
+    }
+    if(xboxDrv.getBumper(Hand.kRight))
+    {
+      driveTrain.shiftToLowGear();
+    }
+
+  /*  if(xboxDrv.getXButton()){
+      shooter.oneQuarterPower();
+    }
+    if(xboxDrv.getAButton()){
+      testFlag = true;
+      
+    }
+    else if(xboxDrv.getBButton()){
+      shooter.stopMotor();
+    }
+    if (testFlag) {
+      shooter.testShoot();
+    } */
+    /*intake.rollIntake(xboxAux.getTriggerAxis(Hand.kLeft)-xboxAux.getTriggerAxis(Hand.kRight));
+
+    //indexer.runIndexer2();
+
+    intake.deployIntake(xboxAux.getY(Hand.kLeft) * 0.5);*/
+
+  }
+  
   @Override
-  public void testPeriodic() 
+  public void disabledInit() 
   {
+    dataCollection.stopDataCollection();
+
+    //indexer.printTraceData();
+    
+      for (int i = 0; i <dataArrayList.size();i++)
+      {
+         System.out.println(dataArrayList.get(i));
+      }  
+    try 
+    {
+      dataCollection.exportData(dataArrayList);
+    } catch (Exception e) 
+    {
+      e.printStackTrace();
+    } 
   }
 
 }
