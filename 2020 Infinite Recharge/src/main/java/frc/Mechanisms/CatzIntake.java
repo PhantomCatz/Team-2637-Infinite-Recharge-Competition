@@ -1,8 +1,9 @@
-  
+
 package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANDigitalInput;
@@ -29,21 +30,24 @@ public class CatzIntake
 
     private final int INTAKE_DEPLOY_MC_CAN_ID = 12;
 
-    // initial state of intake when round starts
-    public boolean deployed = false;
-    public boolean stowed   = true;
+    private final boolean DEPLOYED = false;
+    private final boolean STOWED   = true;
+
+    private boolean intakeState = STOWED;
+    
+    private SupplyCurrentLimitConfiguration intakeCurrentLimit;
+
+    private boolean enableCurrentLimit = true; 
+    private int currentLimitAmps = 60;
+    private int currentLimitTriggerAmps = 80;
+    private int currentLimitTimeoutSeconds = 5;
 
     public CatzIntake()
     {
-        // this is the motor controller for the competition robot
-        //intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID); 
         intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID);
         intakeRollerMtrCtrl  = new WPI_TalonSRX (INTAKE_ROLLER_MC_CAN_ID);
 
         intakeDeployMtrCtrl = new CANSparkMax(INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
-
-        intakeDeployedLimitSwitch = intakeDeployMtrCtrl.getForwardLimitSwitch(intakeDeployMtrCtrlPolarity);
-        intakeStowedLimitSwitch   = intakeDeployMtrCtrl.getReverseLimitSwitch(intakeDeployMtrCtrlPolarity);
 
         //Reset configuration
         intakeFigure8MtrCtrl.configFactoryDefault();
@@ -58,7 +62,16 @@ public class CatzIntake
         //Set deploy MC to brake mode
         intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
 
+        //Set current limit configuration (VictorSPX does not have current limiting capabilites)
+        intakeRollerMtrCtrl.configSupplyCurrentLimit(intakeCurrentLimit);
+        
+        intakeDeployMtrCtrl.setSmartCurrentLimit(currentLimitAmps);
+
+        //Limit Switches Configuration
         intakeDeployMtrCtrlPolarity = LimitSwitchPolarity.kNormallyClosed;
+
+        intakeDeployedLimitSwitch = intakeDeployMtrCtrl.getForwardLimitSwitch(intakeDeployMtrCtrlPolarity);
+        intakeStowedLimitSwitch   = intakeDeployMtrCtrl.getReverseLimitSwitch(intakeDeployMtrCtrlPolarity);
     }
 
     // ---------------------------------------------ROLLER---------------------------------------------
@@ -77,14 +90,20 @@ public class CatzIntake
     public void deployIntake()
     {
         intakeDeployMtrCtrl.set(0.23);
+        intakeState = DEPLOYED;
     }
     public void stowIntake()
     {
         intakeDeployMtrCtrl.set(-0.23);
+        intakeState = STOWED;
     }
     public void stopDeploying()
     {
         intakeDeployMtrCtrl.set(0);
+    }
+    public boolean getIntakeDeployState()
+    {
+        return intakeState;
     }
 
     // ---------------------------------------------Intake Limit Switches---------------------------------------------   

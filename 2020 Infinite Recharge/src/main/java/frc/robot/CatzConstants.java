@@ -10,4 +10,6 @@ public class CatzConstants
     public static final String POSITION_SELECTORL = "Left Pos";
     public static final String POSITION_SELECTORM = "Middle Pos";
     public static final String POSITION_SELECTORR = "Right Pos";
+
+    public static final boolean TEST_MODE = false;
 }

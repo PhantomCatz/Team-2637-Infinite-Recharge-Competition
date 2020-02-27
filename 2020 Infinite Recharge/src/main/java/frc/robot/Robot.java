@@ -9,6 +9,9 @@ package frc.robot;
 
 import java.util.ArrayList;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode.PixelFormat;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -32,6 +35,9 @@ import frc.Mechanisms.CatzShooter;
  */
 public class Robot extends TimedRobot
 {
+  /**
+   *  Mechanisms
+   */
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
@@ -40,6 +46,7 @@ public class Robot extends TimedRobot
 
   public DataCollection dataCollection;
 
+  // Xbox Controllers
   private  XboxController xboxDrv;
   private  XboxController xboxAux;
 
@@ -61,7 +68,16 @@ public class Robot extends TimedRobot
 
 	public boolean prev_boxL = false;
 	public boolean prev_boxM = false;
-	public boolean prev_boxR = false;
+  public boolean prev_boxR = false;
+  
+
+
+  // Camera Settings
+  private UsbCamera camera;
+
+  private static double cameraResolutionWidth = 320;
+  private static double cameraResolutionHeight = 240;
+  private static double cameraFPS = 15;
 
   @Override
   public void robotInit() 
@@ -97,6 +113,11 @@ public class Robot extends TimedRobot
     
     SmartDashboard.putBoolean("Use default autonomous?", false);
   
+    // Camera Configuration
+    camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setFPS(15);
+    camera.setResolution(320, 240);
+    camera.setPixelFormat(PixelFormat.kMJPEG);
   }
 
   @Override
