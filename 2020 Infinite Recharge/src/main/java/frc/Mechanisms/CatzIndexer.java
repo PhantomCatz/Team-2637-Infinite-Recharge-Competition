@@ -21,13 +21,16 @@ public class CatzIndexer
 
     private final int INDEXER_ENTRANCE_SWITCH_DIO_PORT = 3;
     private final int INDEXER_EXIT_SWITCH_DIO_PORT = 4;
+
     private final int BALL_SENSOR_INPUT_DIO_PORT = 5;
     private final int BALL_SENSOR_OUTPUT_DIO_PORT = 6;
 
     private CANSparkMax  indexerMtrCtrl;
 
     public  final int INDEXER_MC_PDP_PORT = 10;
+
     private final int INDEXER_MC_CAN_ID = 20;
+
     private final int INDEXER_MC_CURRENT_LIMIT = 60; //TBD
 
     private boolean indexerEntranceSwitchState = false;
@@ -36,7 +39,7 @@ public class CatzIndexer
     public boolean transferingBallToIndexer = false;
 
     private boolean shooterRunning     = false;
-    public boolean reachedMaxCapacity = false;
+    public  boolean reachedMaxCapacity = false;
 
     private final double BELT_SPEED = 0.4;
     private final double BALL_IN_RANGE_THRESHOLD = 6.0;

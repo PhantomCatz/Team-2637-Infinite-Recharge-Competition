@@ -1,3 +1,4 @@
+  
 package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
@@ -13,17 +14,15 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 public class CatzIntake 
 {
-    // this is the motor controller for the competition robot
-    //private WPI_VictorSPX intakeFigure8MtrCtrl;
-    private WPI_TalonSRX intakeFigure8MtrCtrl;
-    private WPI_TalonSRX intakeRollerMtrCtrl;
+    public WPI_VictorSPX intakeFigure8MtrCtrl;
+    public WPI_TalonSRX  intakeRollerMtrCtrl;
 
     private CANSparkMax intakeDeployMtrCtrl;
 
     private CANDigitalInput intakeDeployedLimitSwitch;
     private CANDigitalInput intakeStowedLimitSwitch;
 
-    public static LimitSwitchPolarity intakeDeployMtrCtrlPolarity = LimitSwitchPolarity.kNormallyClosed;
+    private static LimitSwitchPolarity intakeDeployMtrCtrlPolarity;
 
     private final int INTAKE_FIGURE_8_MC_CAN_ID = 10;
     private final int INTAKE_ROLLER_MC_CAN_ID = 11;
@@ -38,8 +37,8 @@ public class CatzIntake
     {
         // this is the motor controller for the competition robot
         //intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID); 
-        intakeFigure8MtrCtrl = new WPI_TalonSRX(INTAKE_FIGURE_8_MC_CAN_ID);
-        intakeRollerMtrCtrl = new WPI_TalonSRX (INTAKE_ROLLER_MC_CAN_ID);
+        intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID);
+        intakeRollerMtrCtrl  = new WPI_TalonSRX (INTAKE_ROLLER_MC_CAN_ID);
 
         intakeDeployMtrCtrl = new CANSparkMax(INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
 
@@ -58,6 +57,8 @@ public class CatzIntake
 
         //Set deploy MC to brake mode
         intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
+
+        intakeDeployMtrCtrlPolarity = LimitSwitchPolarity.kNormallyClosed;
     }
 
     // ---------------------------------------------ROLLER---------------------------------------------

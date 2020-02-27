@@ -5,13 +5,13 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import frc.robot.Robot;
 
 public class CatzDriveTrain
 {
@@ -19,9 +19,6 @@ public class CatzDriveTrain
     public WPI_TalonFX drvTrainMtrCtrlLTBack;
     public WPI_TalonFX drvTrainMtrCtrlRTFrnt;
     public WPI_TalonFX drvTrainMtrCtrlRTBack;
-
-    private static WPI_TalonSRX srxEncLT;
-    private static WPI_TalonSRX srxEncRT;
 
     public final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     public final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -34,7 +31,7 @@ public class CatzDriveTrain
     public final int DRV_TRN_RT_FRNT_MC_PDP_PORT = 15;
     public final int DRV_TRN_RT_BACK_MC_PDP_PORT = 14;
 
-    private DifferentialDrive drvTrainDifferentialDrive;
+   private DifferentialDrive drvTrainDifferentialDrive;
 
     private SpeedControllerGroup drvTrainLT;
     private SpeedControllerGroup drvTrainRT;
@@ -44,15 +41,15 @@ public class CatzDriveTrain
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-    private final double gearRatio     = 11/44;
-    private final double lowGearRatio  = 14/60;
-    private final double highGearRatio = 24/50;
+    private final double GEAR_RATION     = 11/44;
+    private final double LOW_GEAR_RATION  = 14/60;
+    private final double HIGH_GEAR_RATIO = 24/50;
     
     private final double integratedEncCountsPerRev = 2048;
 
     private final double driveWheelRadius = 3;
 
-    private boolean isDrvTrainInHighGear = true;    //boolean high = true;
+    private boolean isDrvTrainInHighGear = true;    
 
     private AnalogInput pressureSensor;
 
@@ -61,7 +58,7 @@ public class CatzDriveTrain
     private final double PRESSURE_SENSOR_VOLTAGE_OFFSET = 0.5;
 
     private final double PRESSURE_SENSOR_VOLATGE_RANGE = 4.5; //4.5-0.5
-    private final double MAX_PRESSURE = 200;
+    private final double MAX_PRESSURE = 200.0;
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
@@ -72,13 +69,16 @@ public class CatzDriveTrain
 
     private final int PID_IDX_CLOSED_LOOP = 0;
     private final int PID_TIMEOUT_MS = 10;
+    
+    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.98;
 
+    public final double PID_P = 0.25; // original value was 0.05
+    public final double PID_I = 0.0001; // original value was 0.0005
+    public final double PID_D = 0;   // original value was 0.1
+    public final double PID_F = 0.02; // original value was 0.005    0.02 value for target speed 16000
 
     public CatzDriveTrain() 
     {
-        srxEncLT = new WPI_TalonSRX(5);
-        srxEncRT = new WPI_TalonSRX(6);
-
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
@@ -113,8 +113,6 @@ public class CatzDriveTrain
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
-        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
-
         gearShifter = new DoubleSolenoid(DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM, DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM);
 
         pressureSensor = new AnalogInput(PRESSURE_SENSOR_ANALOG_PORT);
@@ -129,33 +127,33 @@ public class CatzDriveTrain
          drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP, PID_TIMEOUT_MS);
  
          //Configure PID Gain Constants
-         drvTrainMtrCtrlLTFrnt.config_kP(0, 0.05);
-         drvTrainMtrCtrlLTFrnt.config_kI(0, 0.0005);
-         drvTrainMtrCtrlLTFrnt.config_kD(0, 0.1);
-         drvTrainMtrCtrlLTFrnt.config_kF(0, 0.005);
+         drvTrainMtrCtrlLTFrnt.config_kP(0, PID_P);
+         drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
+         drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
+         drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
          drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, 0);
- 
-         drvTrainMtrCtrlRTFrnt.config_kP(0, 0.03);
-         drvTrainMtrCtrlRTFrnt.config_kI(0, 0.0006);
-         drvTrainMtrCtrlRTFrnt.config_kD(0, 0.1);
-         drvTrainMtrCtrlRTFrnt.config_kF(0, 0.005);
+
+         drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
+         drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
+         drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
+         drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
          drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
     }
 
     public void arcadeDrive(double power, double rotation)
     {
-        drvTrainDifferentialDrive.arcadeDrive(power, rotation);
+       drvTrainDifferentialDrive.arcadeDrive(-power, rotation);
     }
 
     public void shiftToHighGear()
     {
-        gearShifter.set(Value.kReverse);
+        gearShifter.set(Value.kForward);
         isDrvTrainInHighGear = true;
     }
     
     public void shiftToLowGear()
     {
-        gearShifter.set(Value.kForward);
+        gearShifter.set(Value.kReverse);
         isDrvTrainInHighGear = false;
     }
 
@@ -187,11 +185,11 @@ public class CatzDriveTrain
         double position = 0.0;
         if(side.equals("LT"))
         {
-            position = srxEncLT.getSensorCollection().getQuadraturePosition();
+            position = Robot.climber.climbMtrCtrlA.getSensorCollection().getQuadraturePosition(); //LT encoder is connnected to climber MC A
         }
         else if(side.equals("RT"))
         {
-            position = srxEncRT.getSensorCollection().getQuadraturePosition();
+            position = Robot.intake.intakeRollerMtrCtrl.getSensorCollection().getQuadraturePosition(); //RT encoder is connnected to climber MC A
         }
         return position;
     }
@@ -221,7 +219,7 @@ public class CatzDriveTrain
         }
         else if(side.equals("RT"))
         {
-            velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
+            velocity = drvTrainMtrCtrlRTFrnt.getSensorCollection().getIntegratedSensorVelocity();
         }
         return velocity;
     }
@@ -235,7 +233,9 @@ public class CatzDriveTrain
     public void setTargetVelocity(double targetVelocity)
     {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
-        drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -targetVelocity);
+        drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -DRIVE_STRAIGHT_PID_TUNING_CONSTANT*targetVelocity);
+        drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
+        drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
     }
 
     public void setIntegratedEncPosition(int position)
@@ -243,10 +243,19 @@ public class CatzDriveTrain
         drvTrainMtrCtrlLTFrnt.setSelectedSensorPosition(position);
     }
 
+    public double convertLinearVelocityToAngularVelcoity(double linearVelocity)
+    {
+        return linearVelocity*12.0/driveWheelRadius/(2*Math.PI)*integratedEncCountsPerRev/1000.0*100.0;
+    }
+
     public double getPSI(double voltage)
     {
       voltage = pressureSensor.getVoltage() - PRESSURE_SENSOR_VOLTAGE_OFFSET;
       return (MAX_PRESSURE/PRESSURE_SENSOR_VOLATGE_RANGE) *voltage;  
-     }
-    
+    }   
+
+    public void instantiateDifferentialDrive()
+    {
+        drvTrainDifferentialDrive = new DifferentialDrive(drvTrainLT, drvTrainRT);
+    }
 }
