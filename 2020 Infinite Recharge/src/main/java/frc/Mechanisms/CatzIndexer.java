@@ -194,6 +194,11 @@ public class CatzIndexer
         }
     }
 
+    public void indexerReversed()
+    {   
+        indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+    }
+
     public void debugSmartDashboard()
     {
         SmartDashboard.putNumber("Ball Range", sensorRange);
