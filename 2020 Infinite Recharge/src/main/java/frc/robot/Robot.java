@@ -9,12 +9,16 @@ package frc.robot;
 
 import java.util.ArrayList;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode.PixelFormat;
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.Autonomous.CatzPathChooser;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -32,6 +36,9 @@ import frc.Mechanisms.CatzShooter;
  */
 public class Robot extends TimedRobot
 {
+  /**
+   *  Mechanisms
+   */
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
@@ -40,8 +47,9 @@ public class Robot extends TimedRobot
 
   public DataCollection dataCollection;
 
-  private  XboxController xboxDrv;
-  private  XboxController xboxAux;
+  // Xbox Controllers
+  private        XboxController xboxDrv;
+  public static  XboxController xboxAux;
 
   private final int XBOX_DRV_PORT = 0;
   private final int XBOX_AUX_PORT = 1;
@@ -61,7 +69,20 @@ public class Robot extends TimedRobot
 
 	public boolean prev_boxL = false;
 	public boolean prev_boxM = false;
-	public boolean prev_boxR = false;
+  public boolean prev_boxR = false;
+
+  private final int DPAD_UP = 0;
+  private final int DPAD_DN = 180;
+  private final int DPAD_LT = 270;
+  private final int DPAD_RT = 90;
+
+  
+  // Camera Settings
+  private UsbCamera camera;
+
+  private static double cameraResolutionWidth = 320;
+  private static double cameraResolutionHeight = 240;
+  private static double cameraFPS = 15;
 
   @Override
   public void robotInit() 
@@ -97,6 +118,11 @@ public class Robot extends TimedRobot
     
     SmartDashboard.putBoolean("Use default autonomous?", false);
   
+    // Camera Configuration
+    camera = CameraServer.getInstance().startAutomaticCapture();
+    camera.setFPS(15);
+    camera.setResolution(320, 240);
+    camera.setPixelFormat(PixelFormat.kMJPEG);
   }
 
   @Override
@@ -136,6 +162,8 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit() 
   {
+    CatzPathChooser.choosePath();
+
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
@@ -165,6 +193,7 @@ public class Robot extends TimedRobot
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
+
     if(xboxDrv.getBumper(Hand.kLeft))
     {
       driveTrain.shiftToHighGear();
@@ -174,6 +203,87 @@ public class Robot extends TimedRobot
     {
       driveTrain.shiftToLowGear();
     }
+
+    if(xboxDrv.getStickButtonPressed(Hand.kLeft))
+    {
+      intake.deployIntake();
+      System.out.println("Left stick presed");
+    }
+
+    if(xboxDrv.getStickButtonPressed(Hand.kRight))
+    {
+      intake.stowIntake();
+    }
+
+    if(xboxDrv.getTriggerAxis(Hand.kLeft) > 0.2)
+    {
+      intake.intakeRollerIn();
+    }
+
+    if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
+    {
+      intake.intakeRollerOut();
+    }
+
+
+    if(xboxAux.getPOV() == DPAD_UP)
+    {
+      shooter.setTargetRPM(4500.0);
+    }
+
+    if(xboxAux.getPOV() == DPAD_LT)
+    {
+     shooter.setTargetRPM(5000.0);
+    }
+
+    if(xboxAux.getPOV() == DPAD_DN)
+    {
+      shooter.setTargetRPM(6000.0);
+    }
+   
+   if(xboxAux.getBButton())
+   {
+      indexer.setShooterIsRunning(true);
+      shooter.shoot();
+   }
+
+   if(xboxAux.getStartButton())
+   {
+    shooter.shooterOff();
+   }
+   
+   if(xboxAux.getBackButton())
+   {
+    indexer.indexerReversed();
+   }
+
+   if(xboxAux.getYButton())
+   {
+     climber.runWinch();
+   }
+
+   if(xboxAux.getY(Hand.kLeft )> 0.2)
+   {  
+      climber.extendLightsaber();
+   }
+
+   if(xboxAux.getY(Hand.kLeft)> -0.2)
+   {
+      climber.retractLightsaber();
+   }
+
+
+   if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
+   {
+     shooter.logTestData = true;
+   }
+   if(xboxAux.getBButton())
+   {
+     shooter.logTestData = false;
+   }
+  
+
+  
 
   }
   

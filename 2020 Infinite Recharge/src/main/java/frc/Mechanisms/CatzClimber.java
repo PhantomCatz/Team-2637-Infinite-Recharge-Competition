@@ -1,20 +1,19 @@
 package frc.Mechanisms;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 public class CatzClimber
 {
-    public CANSparkMax climbMtrCtrlA; 
-    public CANSparkMax climbMtrCtrlB;
+    public WPI_TalonSRX climbMtrCtrlA; 
+    public WPI_VictorSPX climbMtrCtrlB;
 
     private WPI_VictorSPX lightsaber;
 
-    private int CLIMB_MC_A_CAN_ID = 30;
+    private int CLIMB_MC_A_CAN_ID = 30; 
     private int CLIMB_MC_B_CAN_ID = 31;
 
     public final int CLIMBER_MC_A_PDP_PORT = 2;
@@ -22,46 +21,58 @@ public class CatzClimber
 
     private int LIGHTSABER_MC_CAN_ID = 50;
 
-    public final static int LIGHTSABER_MC_PDP_PORT = 7;
+    public final static int LIGHTSABER_MC_PDP_PORT = 9;
 
-    final private int CLIMBER_CURRENT_LIMIT = 80;
-    
+    private SupplyCurrentLimitConfiguration climberSupplyCurrentLimitConfig;
+
+    private final boolean ENABLED_CURRENT_LIMIT = true; 
+    private final int CURRENT_LIMIT_AMPS = 60;
+    private final int CURRENT_LIMIT_TRIGGER_AMPS = 80;
+    private final int CURRENT_LIMIT_TIMEOUT_SECONDS = 5;
+
+    private final double WINCH_SPEED = 0.5;
+
     public CatzClimber()
-
     {
-        climbMtrCtrlA = new CANSparkMax(CLIMB_MC_A_CAN_ID, MotorType.kBrushless);
-        climbMtrCtrlB = new CANSparkMax(CLIMB_MC_B_CAN_ID, MotorType.kBrushless);
+        climbMtrCtrlA = new WPI_TalonSRX(CLIMB_MC_A_CAN_ID);
+        climbMtrCtrlB = new WPI_VictorSPX(CLIMB_MC_B_CAN_ID);
 
         lightsaber = new WPI_VictorSPX(LIGHTSABER_MC_CAN_ID);
 
         //Reset configuration
-        climbMtrCtrlA.restoreFactoryDefaults();
-        climbMtrCtrlB.restoreFactoryDefaults();
+        climbMtrCtrlA.configFactoryDefault();
+        climbMtrCtrlB.configFactoryDefault();
 
         lightsaber.configFactoryDefault();
 
-        //current limit 
-        climbMtrCtrlA.setSmartCurrentLimit(CLIMBER_CURRENT_LIMIT);
-        climbMtrCtrlB.setSmartCurrentLimit(CLIMBER_CURRENT_LIMIT);
-        //set current limit for lightsaber
+        //current limiting, (VictorSPX does not have current limiting capability)
+        climberSupplyCurrentLimitConfig = new SupplyCurrentLimitConfiguration(ENABLED_CURRENT_LIMIT, CURRENT_LIMIT_AMPS, CURRENT_LIMIT_TRIGGER_AMPS, CURRENT_LIMIT_TIMEOUT_SECONDS);
+ 
+        climbMtrCtrlA.configSupplyCurrentLimit(climberSupplyCurrentLimitConfig);    
+
+        //set climb motor controller B to follow A
+        climbMtrCtrlB.follow(climbMtrCtrlA);
 
         //Configure MC's to brake mode
-        climbMtrCtrlA.setIdleMode(IdleMode.kBrake);
-        climbMtrCtrlB.setIdleMode(IdleMode.kBrake);
+        climbMtrCtrlA.setNeutralMode(NeutralMode.Brake);
+        climbMtrCtrlB.setNeutralMode(NeutralMode.Brake);
 
         lightsaber.setNeutralMode(NeutralMode.Brake);
-
-        climbMtrCtrlB.follow(climbMtrCtrlA);
     }
 
-    public void runClimber(double power)
+    public void runWinch()
     {   
-        power = Math.max(0, power);
-        climbMtrCtrlA.set(power);  //fix it to the motor, dont run backward (only positive)
+        climbMtrCtrlA.set(WINCH_SPEED);  
     }
 
-    public void extendLightsaber(double power)
+    public void extendLightsaber()
     {
-        lightsaber.set(ControlMode.PercentOutput, power);
-    }    
+        lightsaber.set(ControlMode.PercentOutput, 0.5);
+    }   
+    
+    public void retractLightsaber()
+    {
+        lightsaber.set(ControlMode.PercentOutput, 0.5);
+
+    }
 }

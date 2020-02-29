@@ -1,7 +1,4 @@
-  
 package frc.Mechanisms;
-
-import javax.naming.LimitExceededException;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
@@ -9,47 +6,55 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 import com.revrobotics.CANDigitalInput;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
 import com.revrobotics.CANSparkMax.IdleMode;
-import edu.wpi.first.wpilibj.DigitalInput;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+
+
 public class CatzIntake {
+
+    // this is the motor controller for the competition robot
+
     //private WPI_VictorSPX intakeFigure8MtrCtrl;
+
     private WPI_TalonSRX intakeFigure8MtrCtrl;
-    private WPI_TalonSRX intakeRollerMtrCtrl;
+    public WPI_TalonSRX  intakeRollerMtrCtrl; //changed to public because not working on drivetrain
 
     private CANSparkMax intakeDeployMtrCtrl;
 
-    private DigitalInput intakeForwardLimit;
-    private DigitalInput intakeBackLimit;
+    private CANDigitalInput intakeDeployedLimitSwitch;
+    private CANDigitalInput intakeStowedLimitSwitch;
+
+    public static LimitSwitchPolarity intakeDeployMtrCtrlPolarity = LimitSwitchPolarity.kNormallyClosed;
 
     private final int INTAKE_FIGURE_8_MC_CAN_ID = 10;
-    private final int INTAKE_ROLLER_MC_CAN_ID = 11;
+    private final int INTAKE_ROLLER_MC_CAN_ID   = 11;
+    private final int INTAKE_DEPLOY_MC_CAN_ID   = 12;
 
-    private final int INTAKE_DEPLOY_MC_CAN_ID = 12;
+    // initial state of intake when round starts
 
-    private final int INTAKE_FORWARD_LIMIT_MC_CAN_ID = 13;
-    private final int INTAKE_BACK_LIMIT_MC_CAN_ID = 14;
+    public boolean deployed = false; //TBD should only be one boolean
+    public boolean stowed   = true;
 
     public CatzIntake()
     {
-        //intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID);
+        // this is the motor controller for the competition robot
+        //intakeFigure8MtrCtrl = new WPI_VictorSPX(INTAKE_FIGURE_8_MC_CAN_ID); 
+
         intakeFigure8MtrCtrl = new WPI_TalonSRX(INTAKE_FIGURE_8_MC_CAN_ID);
-        intakeRollerMtrCtrl = new WPI_TalonSRX (INTAKE_ROLLER_MC_CAN_ID);
+        intakeRollerMtrCtrl  = new WPI_TalonSRX(INTAKE_ROLLER_MC_CAN_ID);
+        intakeDeployMtrCtrl  = new CANSparkMax (INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
 
-        intakeDeployMtrCtrl = new CANSparkMax(INTAKE_DEPLOY_MC_CAN_ID, MotorType.kBrushless);
+        intakeDeployedLimitSwitch = intakeDeployMtrCtrl.getForwardLimitSwitch(intakeDeployMtrCtrlPolarity);
+        intakeStowedLimitSwitch   = intakeDeployMtrCtrl.getReverseLimitSwitch(intakeDeployMtrCtrlPolarity);
 
-		intakeForwardLimit = new DigitalInput(INTAKE_FORWARD_LIMIT_MC_CAN_ID);
-        intakeBackLimit    = new DigitalInput(INTAKE_BACK_LIMIT_MC_CAN_ID);
-        
         //Reset configuration
         intakeFigure8MtrCtrl.configFactoryDefault();
         intakeRollerMtrCtrl.configFactoryDefault();
 
         intakeDeployMtrCtrl.restoreFactoryDefaults();
-
-        //set the follow mode
-        //intakeFigure8MtrCtrl.follow(intakeRollerMtrCtrl);
 
         //Set roller MC to coast mode
         intakeFigure8MtrCtrl.setNeutralMode(NeutralMode.Coast);
@@ -57,18 +62,40 @@ public class CatzIntake {
 
         //Set deploy MC to brake mode
         intakeDeployMtrCtrl.setIdleMode(IdleMode.kBrake);
+
     }
 
-    public void rollIntake()
+
+
+    // ---------------------------------------------ROLLER---------------------------------------------
+
+    public void intakeRollerIn()
     {
         intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, -0.7);
         intakeRollerMtrCtrl.set(ControlMode.PercentOutput, 0.7);
     }
 
-    public void stopRolling()
+    public void intakeRollerOut()
+    {
+        intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, 0.7);
+        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, -0.7);
+    }
+
+    public void intakeRollerOff()
     {
         intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, 0.0);
         intakeRollerMtrCtrl.set(ControlMode.PercentOutput, 0.0);
+    }
+
+    // ---------------------------------------------DEPLOY/STOW---------------------------------------------
+    public void deployIntake()
+    {
+        intakeDeployMtrCtrl.set(0.23);
+    }
+
+    public void stowIntake()
+    {
+        intakeDeployMtrCtrl.set(-0.23);
     }
 
     public void stopDeploying()
@@ -76,13 +103,15 @@ public class CatzIntake {
         intakeDeployMtrCtrl.set(0);
     }
 
-    public void deployIntake()
+    // ---------------------------------------------Intake Limit Switches---------------------------------------------   
+
+    public boolean getDeployedLimitSwitchState()
     {
-        intakeDeployMtrCtrl.set(-0.23);
+        return intakeDeployedLimitSwitch.get();
     }
 
-    public void stowIntake()
+    public boolean getStowedLimitSwitchState()
     {
-        intakeDeployMtrCtrl.set(0.23);
+        return intakeStowedLimitSwitch.get();
     }
 }

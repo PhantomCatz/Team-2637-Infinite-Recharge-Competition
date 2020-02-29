@@ -1,55 +1,53 @@
 package frc.Mechanisms;
 
-import java.util.ArrayList;
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.Ultrasonic;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.Ultrasonic;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.DataLogger.DataCollection;
-import frc.robot.Robot;
-
 public class CatzIndexer 
 {
+    //Switches and Sensors
     public DigitalInput indexerEntranceSwitch;
     public DigitalInput indexerExitSwitch;
     public Ultrasonic   ballSensor;
 
     private final int INDEXER_ENTRANCE_SWITCH_DIO_PORT = 3;
-    private final int INDEXER_EXIT_SWITCH_DIO_PORT = 4;
-    private final int BALL_SENSOR_INPUT_DIO_PORT = 5;
-    private final int BALL_SENSOR_OUTPUT_DIO_PORT = 6;
+    private final int INDEXER_EXIT_SWITCH_DIO_PORT     = 4;
+    private final int BALL_SENSOR_INPUT_DIO_PORT       = 5;
+    private final int BALL_SENSOR_OUTPUT_DIO_PORT      = 6;
 
+    //Motor and Motor Controller
     private CANSparkMax  indexerMtrCtrl;
 
-    public  final int INDEXER_MC_PDP_PORT = 10;
-    private final int INDEXER_MC_CAN_ID = 20;
-    private final int INDEXER_MC_CURRENT_LIMIT = 60; //TBD
+    public  final int INDEXER_MC_PDP_PORT      = 10;
+    private final int INDEXER_MC_CAN_ID        = 20;
+    private final int INDEXER_MC_CURRENT_LIMIT = 60; //TBD verify no damage for duration of match
 
-    private boolean indexerEntranceSwitchState = false;
-    private boolean indexerExitSwitchState = false;
+    
+    private final boolean BALL_PRESENT     = false; //Bump switch pressed reads false, not pressed reads true
+    private final boolean BALL_NOT_PRESENT = true;
 
-    public boolean transferingBallToIndexer = false;
+    private boolean indexerEntranceSwitchState = BALL_NOT_PRESENT; 
+    private boolean indexerExitSwitchState     = BALL_NOT_PRESENT;     
+
+    public boolean transferingBallToIndexer = false;    //true when motor is active (moving ball from intexer into indexer)
 
     private boolean shooterRunning     = false;
-    public boolean reachedMaxCapacity = false;
+    public boolean reachedMaxCapacity  = false;
 
-    private final double BELT_SPEED = 0.4;
-    private final double BALL_IN_RANGE_THRESHOLD = 6.0;
-    public double sensorRange = 999.0;
+    private final double BELT_SPEED_LOAD         = 0.4;
+    private final double BELT_SPEED_SHOOT        = 0.4;
+    private final double BALL_IN_RANGE_THRESHOLD = 6.0;     //If Ultrasonic detects ball below this range (inches), motor is turned on
+    public double sensorRange                    = 0.0;    //Ultrasonic output value
 
-    public int ballCount = 0;
-    public final int MAX_NUM_BALLS = 5; //
+    public       int ballCount     = 0;
+    public final int MAX_NUM_BALLS = 5;     //if this value is reached, indexer is deactivated.
 
-    private final boolean BALL_PRESENT = false; //Bump switch pressed reads false, not pressed reads true
-
-    //public static ArrayList<Double> indexerArrayList;  
-
-    //public Timer indexTime2;
+    private boolean testMode = false;
 
     private Thread indexerThread;
 
@@ -58,17 +56,15 @@ public class CatzIndexer
         indexerEntranceSwitch = new DigitalInput(INDEXER_ENTRANCE_SWITCH_DIO_PORT);
         indexerExitSwitch     = new DigitalInput(INDEXER_EXIT_SWITCH_DIO_PORT);
 
+        ballSensor = new Ultrasonic(BALL_SENSOR_INPUT_DIO_PORT,BALL_SENSOR_OUTPUT_DIO_PORT);//(input,output)
+        ballSensor.setAutomaticMode(true);
+
         indexerMtrCtrl = new CANSparkMax(INDEXER_MC_CAN_ID, MotorType.kBrushless);
 
         indexerMtrCtrl.restoreFactoryDefaults();
         indexerMtrCtrl.setIdleMode(IdleMode.kBrake);
         indexerMtrCtrl.setSmartCurrentLimit(INDEXER_MC_CURRENT_LIMIT);
-        //indexerMtrCtrl.set(0.0);
-
-        ballSensor = new Ultrasonic(BALL_SENSOR_INPUT_DIO_PORT,BALL_SENSOR_OUTPUT_DIO_PORT);//(input,output)
-        ballSensor.setAutomaticMode(true);
-
-        //indexerArrayList = new ArrayList<Double>();
+        indexerMtrCtrl.set(0.0);
 
     }
 
@@ -78,62 +74,44 @@ public class CatzIndexer
         {
             while(true)
             {
-            //indexerArrayList.add(1000.0);
-
-            //indexerArrayList.add(Robot.dataCollectionTimer.get());
     
             indexerEntranceSwitchState = indexerEntranceSwitch.get();
             indexerExitSwitchState     = indexerExitSwitch.get();
     
             if(shooterRunning)
             {
-                //indexerArrayList.add(1.0);
-                indexerMtrCtrl.set(BELT_SPEED);
-                System.out.println("1");
                 ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
             }
             else 
             {
-                //indexerArrayList.add(2.0);
                 if(indexerExitSwitchState == BALL_PRESENT)
                 {
-                    //indexerArrayList.add(10.0);
-                    reachedMaxCapacity = true;
+                    reachedMaxCapacity = true;  //marks indexer as "full"
                     indexerMtrCtrl.set(0.0);
                 }
                 else  
                 {   
-                    //indexerArrayList.add(20.0);
-    
                     sensorRange = getUltraSonicSensorReading();
-                    
-                    //indexerArrayList.add(sensorRange);
-    
-                    //System.out.println(sensorRange + ", " + BALL_IN_RANGE_THRESHOLD);
+
                     if(sensorRange < BALL_IN_RANGE_THRESHOLD)
                     { 
-                        //indexerArrayList.add(21.0);
                         //indexTime2.stop();                   //Indexer Motor Timeout
                         //indexTime2.reset();                  //Indexer Motor Timeout
                         transferingBallToIndexer = true;
-                        indexerMtrCtrl.set(BELT_SPEED);
-                        //System.out.println("2," +sensorRange);
+                        indexerMtrCtrl.set(BELT_SPEED_LOAD);
                     }
                     else 
                     {
-                        //indexerArrayList.add(22.0);
                         if(transferingBallToIndexer == true)
                         {
-                            //indexerArrayList.add(23.0);
                             if(indexerEntranceSwitchState == BALL_PRESENT)
                             {
-                                //indexerArrayList.add(24.0);
-                                indexerMtrCtrl.set(0);
+                                indexerStop();
                                 transferingBallToIndexer = false;
+
                                 ballCount ++;
-                                if(ballCount >= MAX_NUM_BALLS)
+                                if(ballCount >= MAX_NUM_BALLS)  //checks if 5 balls in indexer
                                 {
-                                    //indexerArrayList.add(30.0);
                                     reachedMaxCapacity = true;
                                 }
                             }
@@ -149,14 +127,12 @@ public class CatzIndexer
                 }           
             }
     
-            //indexerArrayList.add(9999.0);
-            //Timer.delay(0.002);
             }
         }
-            );
+    );
             
-        indexerThread.start();
-        }
+        indexerThread.start(); //repeats thread
+        }  //Fix paren alignment
 
     public void stopIndexerThread()
     {
@@ -185,10 +161,10 @@ public class CatzIndexer
 
     public double getUltraSonicSensorReading()
     {
-        return ballSensor.getRangeInches();
+        return ballSensor.getRangeInches();     //Ultrasonic range in inches
     }
 
-    public boolean isBallInIntexer()
+    public boolean isBallInIntexer()        //returns if ball is sensed in range by ultrasonic
     {
         sensorRange = ballSensor.getRangeInches();
 
@@ -202,21 +178,37 @@ public class CatzIndexer
         }
     }
 
-    /*public void printTraceData()
+    public void indexerStart()
     {
-        int size = indexerArrayList.size();
-        for (int i = 0; i <size;i++)
+        if(testMode == false)
         {
-           System.out.println(indexerArrayList.get(i));
-        }  
-    }*/
-    public void indexerMotorOnly()
-    {
-        indexerMtrCtrl.set(BELT_SPEED);
+            indexerMtrCtrl.set(BELT_SPEED_SHOOT);
+        }
     }
 
-    public void indexerMotorOff()
+    public void indexerStop()
     {
-        indexerMtrCtrl.set(0.0);
+        if(testMode == false)
+        {
+            indexerMtrCtrl.set(0.0);
+        }
+    }
+
+    public void indexerReversed()
+    {   
+        indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+    }
+
+    public void debugSmartDashboard()
+    {
+        SmartDashboard.putNumber("Ball Range", sensorRange);
+        SmartDashboard.putBoolean("Transfering", transferingBallToIndexer);
+        SmartDashboard.putBoolean("SW-Entrance", indexerEntranceSwitchState);
+        SmartDashboard.putBoolean("SW-Exit", indexerExitSwitchState);
+    }
+    public void smartDashboard()
+    {
+        SmartDashboard.putNumber("Ball Count", ballCount);
+        SmartDashboard.putBoolean("Reached max capacity", reachedMaxCapacity);
     }
 }
