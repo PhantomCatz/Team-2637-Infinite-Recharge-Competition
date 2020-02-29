@@ -228,17 +228,17 @@ public class Robot extends TimedRobot
 
     if(xboxAux.getPOV() == DPAD_UP)
     {
-      shooter.setTargetRPM(4500.0);
+      shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_LO);
     }
 
     if(xboxAux.getPOV() == DPAD_LT)
     {
-     shooter.setTargetRPM(5000.0);
+     shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_MD);
     }
 
     if(xboxAux.getPOV() == DPAD_DN)
     {
-      shooter.setTargetRPM(6000.0);
+      shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_HI);
     }
    
    if(xboxAux.getBButton())
