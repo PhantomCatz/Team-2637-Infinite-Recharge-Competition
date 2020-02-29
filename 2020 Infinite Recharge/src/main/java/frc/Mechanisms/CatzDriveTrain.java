@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 
 public class CatzDriveTrain
@@ -70,13 +71,28 @@ public class CatzDriveTrain
     private final int PID_IDX_CLOSED_LOOP = 0;
     private final int PID_TIMEOUT_MS = 10;
 
-    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 1; //0.98;
+    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.95; //0.98;
 
     public final double PID_P = 0.05; // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
     public final double PID_D = 0.1;   // original value was 0.1
     public final double PID_F = 0.02; // original value was 0.005    0.02 value for target speed 16000
     public final int IZONE    = 10;
+
+    public double leftInitialEncoderPos;
+    public double rightInitialEncoderPos;
+
+    public boolean runningDistanceDrive = false;
+
+    public double distanceGoal;
+    public double distanceMoved;
+    public final double STOP_THRESHOLD = 10;
+    public final double SLOW_THRESHOLD = 24;
+
+    public final double ENCODER_COUNTS_PER_INCH_LT = 1046.6;
+    public final double ENCODER_COUNTS_PER_INCH_RT = 1025.7;
+
+    public final int DRIVE_DIST_MED_SPEED = 12000;
 
     public CatzDriveTrain() 
     {
@@ -148,9 +164,65 @@ public class CatzDriveTrain
          drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); */
     }
 
+    public void monitorEncoderPosition()
+    {
+        if (runningDistanceDrive == true)
+        {
+            distanceMoved = leftEncoderDistanceMoved();
+
+            SmartDashboard.putNumber("Left Encoder Distance", leftEncoderDistanceMoved());
+            SmartDashboard.putNumber("Left Encoder Position", getIntegratedEncPosition("LT"));
+            SmartDashboard.putNumber("Left Initial Encoder Distance", leftInitialEncoderPos);
+            SmartDashboard.putNumber("Distance Moved", distanceMoved);
+            SmartDashboard.putNumber("Delta Encoder", (getIntegratedEncPosition("LT") - leftInitialEncoderPos));
+
+            System.out.println((getIntegratedEncPosition("LT") - leftInitialEncoderPos) + " = " + getIntegratedEncPosition("LT") + " - " + leftInitialEncoderPos);
+
+            double distanceToGoal = distanceGoal - distanceMoved;
+
+            SmartDashboard.putNumber("Distance To Goal", distanceToGoal);
+
+            if (distanceToGoal < STOP_THRESHOLD)
+            {
+                setTargetVelocity(0);
+                runningDistanceDrive = false;
+            }
+
+            else if (distanceToGoal < SLOW_THRESHOLD)
+            {
+                setTargetVelocity(DRIVE_DIST_MED_SPEED/2);
+                setTargetVelocity(DRIVE_DIST_MED_SPEED/2);
+            }
+        }
+    }
+
+    public void setDistanceGoal(double inches)
+    {
+        if(!runningDistanceDrive)
+        {
+            distanceGoal = inches;
+            runningDistanceDrive = true;
+            leftInitialEncoderPos = drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
+            setTargetVelocity(DRIVE_DIST_MED_SPEED);
+        }
+    }
+
+    public double leftEncoderDistanceMoved()
+    {  
+        //System.out.println((getIntegratedEncPosition("LT") - leftInitialEncoderPos) + " = " + getIntegratedEncPosition("LT") + " - " + leftInitialEncoderPos);
+        return (getIntegratedEncPosition("LT") - leftInitialEncoderPos) / ENCODER_COUNTS_PER_INCH_LT;
+    }
+
+    public double rightEncoderDistanceMoved()
+    {   
+        rightInitialEncoderPos = drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
+        return (getIntegratedEncPosition("RT") - rightInitialEncoderPos) * ENCODER_COUNTS_PER_INCH_RT;
+    }
+
+
     public void arcadeDrive(double power, double rotation)
     {
-       //drvTrainDifferentialDrive.arcadeDrive(-power, rotation);
+       drvTrainDifferentialDrive.arcadeDrive(-power, rotation);
     }
 
     public void shiftToHighGear()
@@ -186,6 +258,9 @@ public class CatzDriveTrain
         }
         return temp;
     }
+
+
+
 
     public double getSrxMagPosition(String side)
     {

@@ -166,9 +166,8 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
-    //driveTrain.instantiateDifferentialDrive();
-
-    driveTrain.setDriveTrainPIDConfiguration();
+    driveTrain.instantiateDifferentialDrive();
+    //driveTrain.setDriveTrainPIDConfiguration();
 
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
@@ -181,6 +180,9 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    //driveTrain.monitorEncoderPosition();
+
+    //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -194,12 +196,22 @@ public class Robot extends TimedRobot
 
     if(xboxDrv.getAButton())
     {
-      driveTrain.setTargetVelocity(15000);
+      driveTrain.setTargetVelocity(12000);
     }  
     
     if(xboxDrv.getBButton())
     {
       driveTrain.setTargetVelocity(0);
+    }
+
+    if(xboxDrv.getXButton())
+    {
+      driveTrain.setDistanceGoal(240);
+    }
+
+    if(xboxDrv.getBumper(Hand.kLeft))
+    {
+      
     }
 
   }
@@ -209,10 +221,10 @@ public class Robot extends TimedRobot
   {
     dataCollection.stopDataCollection();
     
-    for (int i = 0; i <dataArrayList.size();i++)
+   /* for (int i = 0; i <dataArrayList.size();i++)
     {
        System.out.println(dataArrayList.get(i));
-    }  
+    }  */
 
     try 
     {
