@@ -191,9 +191,10 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+  //-------------------------------------------Drivetrain------------------------------------------------------------- 
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
-
+  
     if(xboxDrv.getBumper(Hand.kLeft))
     {
       driveTrain.shiftToHighGear();
@@ -203,11 +204,10 @@ public class Robot extends TimedRobot
     {
       driveTrain.shiftToLowGear();
     }
-
+//-----------------------------------------------INTAKE---------------------------------------------------
     if(xboxDrv.getStickButtonPressed(Hand.kLeft))
     {
       intake.deployIntake();
-      System.out.println("Left stick presed");
     }
 
     if(xboxDrv.getStickButtonPressed(Hand.kRight))
@@ -225,6 +225,11 @@ public class Robot extends TimedRobot
       intake.intakeRollerOut();
     }
 
+    if(xboxDrv.getAButton())
+    {
+      intake.applyBallCompression();
+    }
+    //--------------------------------------------SHOOTER-------------------------------------------------
 
     if(xboxAux.getPOV() == DPAD_UP)
     {
@@ -251,12 +256,14 @@ public class Robot extends TimedRobot
    {
     shooter.shooterOff();
    }
+
+   //----------------------------------------------INDEXER----------------------------------------
    
    if(xboxAux.getBackButton())
    {
     indexer.indexerReversed();
    }
-
+//--------------------------------------------------CLIMB----------------------------------------------
    if(xboxAux.getYButton())
    {
      climber.runWinch();
@@ -272,7 +279,7 @@ public class Robot extends TimedRobot
       climber.retractLightsaber();
    }
 
-
+//ONLY TESTING 
    if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
    {
      shooter.logTestData = true;

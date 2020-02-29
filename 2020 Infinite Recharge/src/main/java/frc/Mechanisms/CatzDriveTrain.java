@@ -44,46 +44,45 @@ public class CatzDriveTrain
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-    private final double GEAR_RATION     = 11/44;
-    private final double LOW_GEAR_RATION  = 14/60;
+    /*
+    private final double GEAR_RATIO    = 11/44;  TBD - OK TO LEAVE AS COMMENT IF DATA IS CORRECT
+    private final double LOW_GEAR_RATIO  = 14/60;
     private final double HIGH_GEAR_RATIO = 24/50;
 
-    private final double integratedEncCountsPerRev = 2048;
-
-    private final double driveWheelRadius = 3;
-
+    */
     private boolean isDrvTrainInHighGear = true;    
 
-    private AnalogInput pressureSensor;
+    private final double integratedEncCountsPerRev      = 2048;
 
-    private final int PRESSURE_SENSOR_ANALOG_PORT = 3; 
+    private final double driveWheelRadius               = 3;
+
+    private final int PRESSURE_SENSOR_ANALOG_PORT       = 3; 
 
     private final double PRESSURE_SENSOR_VOLTAGE_OFFSET = 0.5;
 
-    private final double PRESSURE_SENSOR_VOLATGE_RANGE = 4.5; //4.5-0.5
-    private final double MAX_PRESSURE = 200.0;
+    private final double PRESSURE_SENSOR_VOLATGE_RANGE  = 4.5;    //4.5-0.5
+    private final double MAX_PRESSURE                   = 200.0;
+
+    private AnalogInput pressureSensor;
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
-    private boolean enableCurrentLimit = true; 
-    private int currentLimitAmps = 60;
-    private int currentLimitTriggerAmps = 80;
+    private boolean enableCurrentLimit     = true; 
+    private int currentLimitAmps           = 60;
+    private int currentLimitTriggerAmps    = 80;
     private int currentLimitTimeoutSeconds = 5;
 
     private final int PID_IDX_CLOSED_LOOP = 0;
-    private final int PID_TIMEOUT_MS = 10;
+    private final int PID_TIMEOUT_MS      = 10;
 
     private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.98;
 
 
 
-    public final double PID_P = 0.25; // original value was 0.05
-
+    public final double PID_P = 0.25;   // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
-
-    public final double PID_D = 0;   // original value was 0.1
-
-    public final double PID_F = 0.02; // original value was 0.005    0.02 value for target speed 16000
+    public final double PID_D = 0;      // original value was 0.1
+    public final double PID_F = 0.02;   // original value was 0.005    0.02 value for target speed 16000
 
 
 
