@@ -20,7 +20,7 @@ public class CatzIntake {
     //private WPI_VictorSPX intakeFigure8MtrCtrl;
 
     private WPI_TalonSRX intakeFigure8MtrCtrl;
-    public WPI_TalonSRX intakeRollerMtrCtrl; //changed to public because not working on drivetrain
+    public WPI_TalonSRX  intakeRollerMtrCtrl; //changed to public because not working on drivetrain
 
     private CANSparkMax intakeDeployMtrCtrl;
 
@@ -30,8 +30,8 @@ public class CatzIntake {
     public static LimitSwitchPolarity intakeDeployMtrCtrlPolarity = LimitSwitchPolarity.kNormallyClosed;
 
     private final int INTAKE_FIGURE_8_MC_CAN_ID = 10;
-    private final int INTAKE_ROLLER_MC_CAN_ID = 11;
-    private final int INTAKE_DEPLOY_MC_CAN_ID = 12;
+    private final int INTAKE_ROLLER_MC_CAN_ID   = 11;
+    private final int INTAKE_DEPLOY_MC_CAN_ID   = 12;
 
     // initial state of intake when round starts
 

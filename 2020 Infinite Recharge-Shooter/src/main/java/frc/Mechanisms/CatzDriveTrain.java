@@ -3,144 +3,75 @@ package frc.Mechanisms;
 
 
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
-
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
-
 import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
-
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-
-
 import edu.wpi.first.wpilibj.AnalogInput;
-
 import edu.wpi.first.wpilibj.DoubleSolenoid;
-
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
-
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
-
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-
 import frc.robot.Robot;
 
 
-
 public class CatzDriveTrain
-
 {
-
     public WPI_TalonFX drvTrainMtrCtrlLTFrnt;
-
     public WPI_TalonFX drvTrainMtrCtrlLTBack;
-
     public WPI_TalonFX drvTrainMtrCtrlRTFrnt;
-
     public WPI_TalonFX drvTrainMtrCtrlRTBack;
 
-
-
     public final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
-
     public final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
 
-
-
     public final int DRVTRAIN_RT_FRNT_MC_CAN_ID = 3;
-
     public final int DRVTRAIN_RT_BACK_MC_CAN_ID = 4;
 
-
-
     public final int DRV_TRN_LT_FRNT_MC_PDP_PORT = 0;
-
     public final int DRV_TRN_LT_BACK_MC_PDP_PORT = 1;
-
     public final int DRV_TRN_RT_FRNT_MC_PDP_PORT = 15;
-
     public final int DRV_TRN_RT_BACK_MC_PDP_PORT = 14;
 
-
-
-   private DifferentialDrive drvTrainDifferentialDrive;
-
-
+    private DifferentialDrive drvTrainDifferentialDrive;
 
     private SpeedControllerGroup drvTrainLT;
-
     private SpeedControllerGroup drvTrainRT;
-
-
 
     private DoubleSolenoid gearShifter;
 
-
-
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
-
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-
-
     private final double GEAR_RATION     = 11/44;
-
     private final double LOW_GEAR_RATION  = 14/60;
-
     private final double HIGH_GEAR_RATIO = 24/50;
-
-    
 
     private final double integratedEncCountsPerRev = 2048;
 
-
-
     private final double driveWheelRadius = 3;
-
-
 
     private boolean isDrvTrainInHighGear = true;    
 
-
-
     private AnalogInput pressureSensor;
-
-
 
     private final int PRESSURE_SENSOR_ANALOG_PORT = 3; 
 
-
-
     private final double PRESSURE_SENSOR_VOLTAGE_OFFSET = 0.5;
 
-
-
     private final double PRESSURE_SENSOR_VOLATGE_RANGE = 4.5; //4.5-0.5
-
     private final double MAX_PRESSURE = 200.0;
-
-
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
-
-
     private boolean enableCurrentLimit = true; 
-
     private int currentLimitAmps = 60;
-
     private int currentLimitTriggerAmps = 80;
-
     private int currentLimitTimeoutSeconds = 5;
 
-
-
     private final int PID_IDX_CLOSED_LOOP = 0;
-
     private final int PID_TIMEOUT_MS = 10;
-
-    
 
     private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.98;
 

@@ -20,14 +20,11 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 
 public class CatzShooter 
 {   
-    public static CatzIndexer indexer;
-    
-
     public WPI_TalonSRX shtrMtrCtrlA;
     public WPI_TalonSRX shtrMtrCtrlB;
 
-    private final int SHTR_MC_ID_A = 40; //TBD 40
-    private final int SHTR_MC_ID_B = 41; //41
+    private final int SHTR_MC_ID_A = 40; 
+    private final int SHTR_MC_ID_B = 41; 
     
     final double COUNTS_PER_REVOLUTION      = 4096.0;
     final double SEC_TO_MIN                 = 60.0;
@@ -77,11 +74,11 @@ public class CatzShooter
     private int shooterState = SHOOTER_STATE_OFF;
 
     private int indexerShootStateCountLimit  = 0;
-    private int rampStateCountLimit = 0;
-    private int indexerShootStateCount = 0;
-    private int rampStateCount = 0;
-    private int samplingVelocityCount = 0;
-    private int samplingVelocityCountLimit = 0;
+    private int rampStateCountLimit          = 0;
+    private int indexerShootStateCount       = 0;
+    private int rampStateCount               = 0;
+    private int samplingVelocityCount        = 0;
+    private int samplingVelocityCountLimit   = 0;
 
     private boolean shooterIsReady = false;
     double avgVelocity             = 0.0;
@@ -92,7 +89,7 @@ public class CatzShooter
 
     public CatzShooter() //constructor
     {   
-        indexer = new CatzIndexer();
+        Robot.indexer = new CatzIndexer();
 
         shtrMtrCtrlA = new WPI_TalonSRX(SHTR_MC_ID_A);
         shtrMtrCtrlB = new WPI_TalonSRX(SHTR_MC_ID_B); //intialize motor controllers
@@ -177,7 +174,7 @@ public class CatzShooter
         shooterState = SHOOTER_STATE_OFF;
         shooterPower = SHOOTER_OFF_POWER;
         shtrMtrCtrlA.set(shooterPower);
-        indexer.setShooterIsRunning(false);
+        Robot.indexer.setShooterIsRunning(false);
 
     }
 
@@ -328,13 +325,13 @@ public class CatzShooter
                 break;
 
                 case SHOOTER_STATE_SHOOTING: //will count for a certain amount of time until it switches the shooter off and sets state to OFF
-                    indexer.indexerStart(); 
+                    Robot.indexer.indexerStart(); 
 
                     indexerShootStateCount++;
                     if(indexerShootStateCount > indexerShootStateCountLimit)
                     {
                         shooterOff();
-                        indexer.indexerStop(); 
+                        Robot.indexer.indexerStop(); 
                     }
                 break;
                 
