@@ -33,6 +33,13 @@ public class CatzIntake {
     private final int INTAKE_ROLLER_MC_CAN_ID   = 11;
     private final int INTAKE_DEPLOY_MC_CAN_ID   = 12;
 
+    private final double FIGURE8_MTR_SPEED = -0.7;
+    private final double ROLLER_MTR_SPEED = 0.7;
+
+    private final double DEPLOY_SPEED = 0.23;
+    private final double STOW_SPEED = -0.23;
+
+
     // initial state of intake when round starts
 
     public boolean deployed = false; //TBD should only be one boolean
@@ -71,8 +78,8 @@ public class CatzIntake {
 
     public void intakeRollerOn()
     {
-        intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, -0.7);
-        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, 0.7);
+        intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, FIGURE8_MTR_SPEED);
+        intakeRollerMtrCtrl.set(ControlMode.PercentOutput, ROLLER_MTR_SPEED);
     }
 
     public void intakeRollerOff()
@@ -84,12 +91,12 @@ public class CatzIntake {
     // ---------------------------------------------DEPLOY/STOW---------------------------------------------
     public void deployIntake()
     {
-        intakeDeployMtrCtrl.set(0.23);
+        intakeDeployMtrCtrl.set(DEPLOY_SPEED);
     }
 
     public void stowIntake()
     {
-        intakeDeployMtrCtrl.set(-0.23);
+        intakeDeployMtrCtrl.set(STOW_SPEED);
     }
 
     public void stopDeploying()

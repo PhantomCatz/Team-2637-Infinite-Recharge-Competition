@@ -35,15 +35,17 @@ public class CatzShooter
 
     final double CONV_QUAD_VELOCITY_TO_RPM = ( ((ENCODER_SAMPLE_PERIOD_MSEC * MSEC_TO_SEC * SEC_TO_MIN) / COUNTS_PER_REVOLUTION)); //converts velocity to RPM
 
-    public static final int SHOOTER_STATE_OFF           = 0;
-    public static final int SHOOTER_STATE_RAMPING       = 1;
-    public static final int SHOOTER_STATE_SET_SPEED     = 2;
-    public static final int SHOOTER_STATE_READY         = 3;
-    public static final int SHOOTER_STATE_SHOOTING      = 4;
+    public static final int SHOOTER_STATE_OFF                 = 0;
+    public static final int SHOOTER_STATE_RAMPING             = 1;
+    public static final int SHOOTER_STATE_SET_SPEED           = 2;
+    public static final int SHOOTER_STATE_READY               = 3;
+    public static final int SHOOTER_STATE_START_SHOOTING      = 4;
+    public static final int SHOOTER_STATE_WAIT_FOR_SHOOT_DONE = 5;
     
- 
-    final double SHOOTER_TARGET_VEL_TARGET_ZONE_RPM = 4000.0; //TBD
-    final double SHOOTER_TARGET_VEL_START_LINE_RPM  = 4300.0; //RPM
+    public final double SHOOTER_RPM_START_OFFSET =  500.0;
+    public final double SHOOTER_TARGET_RPM_LO    = 4000.0;
+    public final double SHOOTER_TARGET_RPM_MD    = 4500.0;
+    public final double SHOOTER_TARGET_RPM_HI    = 5500.0;
 
     final double SHOOTER_BANG_BANG_MAX_RPM_OFFSET = 5.0; 
     final double SHOOTER_BANG_BANG_MIN_RPM_OFFSET = 5.0;
@@ -161,9 +163,7 @@ public class CatzShooter
         if(shooterState == SHOOTER_STATE_READY)
         {
         indexerShootStateCount = 0;
-        shooterState = SHOOTER_STATE_SHOOTING;
-        shooterPower = SHOOTER_SHOOT_POWER;
-        shtrMtrCtrlA.set(shooterPower);
+        shooterState = SHOOTER_STATE_START_SHOOTING;
        
         }
     }
@@ -175,6 +175,7 @@ public class CatzShooter
         shooterPower = SHOOTER_OFF_POWER;
         shtrMtrCtrlA.set(shooterPower);
         Robot.indexer.setShooterIsRunning(false);
+        Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
 
     }
 
@@ -222,7 +223,6 @@ public class CatzShooter
             {
                 case SHOOTER_STATE_OFF: //when there is no targetRPM (basically when no button is pressed) will be shooter most of the time
                     shooterPower = SHOOTER_OFF_POWER;
-                    Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
                     if(targetRPM > 0.0)
                     {
                         indexerShootStateCount = 0;
@@ -241,8 +241,6 @@ public class CatzShooter
 
                         getBangBangPower();
                         shtrMtrCtrlA.set(shooterPower);
-
-                        Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
 
                         for(int i = 0; i < NUM_OF_DATA_SAMPLES_TO_AVERAGE; i++ )
                         {
@@ -324,24 +322,33 @@ public class CatzShooter
                     }
                 break;
 
-                case SHOOTER_STATE_SHOOTING: //will count for a certain amount of time until it switches the shooter off and sets state to OFF
-                    Robot.indexer.indexerStart(); 
+                case SHOOTER_STATE_START_SHOOTING: 
+                    shooterPower = SHOOTER_SHOOT_POWER;
+                    shtrMtrCtrlA.set(shooterPower);    
+                   
+                    if(flywheelShaftVelocity > targetRPM + SHOOTER_RPM_START_OFFSET)
+                    {
+                        Robot.indexer.indexerStart(); 
+                        shooterState = SHOOTER_STATE_WAIT_FOR_SHOOT_DONE;
+                    }
+                break;
 
+                case SHOOTER_STATE_WAIT_FOR_SHOOT_DONE: //will count for a certain amount of time until it switches the shooter off and sets state to OFF
                     indexerShootStateCount++;
                     if(indexerShootStateCount > indexerShootStateCountLimit)
                     {
                         shooterOff();
                         Robot.indexer.indexerStop(); 
                     }
+            
                 break;
-                
+
                 default:  //default code when there is nothing going on 
                     System.out.println("DEFAULT STATE");
                     shooterOff();
                 break;
         }        
             Timer.delay(SHOOTER_THREAD_WAITING_TIME);
-    
         }
     }); //end of thread
     
