@@ -140,7 +140,7 @@ public class Robot extends TimedRobot
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
     
-    SmartDashboard.putNumber("NavxAngle", navx.getAngle());
+    //SmartDashboard.putNumber("NavxAngle", navx.getAngle());
 
   }
 
@@ -158,8 +158,6 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousPeriodic() 
   {
-
-    //driveTrain.setTargetVelocity(5000);
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -191,7 +189,7 @@ public class Robot extends TimedRobot
   public void teleopPeriodic()
   {
 
-    //SmartDashboard.putNumber("Angle", navx.getAngle());
+    SmartDashboard.putNumber("Angle", navx.getAngle());
 
     if (xboxDrv.getYButton())
     {
@@ -199,9 +197,7 @@ public class Robot extends TimedRobot
     }
 
     //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    driveTrain.monitorEncoderPosition();
-
-    //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    driveTrain.monitorAngle();
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -228,7 +224,7 @@ public class Robot extends TimedRobot
       //driveTrain.setDistanceGoal(240);
       //driveTrain.radialTurn(6.25, 90, 90);
       
-      driveTrain.setDistanceGoalTurn(16000, 4000);
+      driveTrain.setAngleGoal(90, 16000, 8000);
 
     }
 
