@@ -1,6 +1,8 @@
 package frc.Mechanisms;
 
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -14,7 +16,7 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 public class CatzShooter 
 {   
     public WPI_TalonSRX shtrMtrCtrlA;
-    public WPI_TalonSRX shtrMtrCtrlB;
+    public WPI_VictorSPX shtrMtrCtrlB;
 
     private final int SHTR_MC_ID_A = 40; 
     private final int SHTR_MC_ID_B = 41; 
@@ -80,10 +82,8 @@ public class CatzShooter
 
     public CatzShooter() //constructor
     {   
-        Robot.indexer = new CatzIndexer();
-
         shtrMtrCtrlA = new WPI_TalonSRX(SHTR_MC_ID_A);
-        shtrMtrCtrlB = new WPI_TalonSRX(SHTR_MC_ID_B); //intialize motor controllers
+        shtrMtrCtrlB = new WPI_VictorSPX(SHTR_MC_ID_B); //intialize motor controllers
 
         //Reset configuration
         shtrMtrCtrlA.configFactoryDefault();
@@ -121,6 +121,7 @@ public class CatzShooter
     public void setTargetVelocity(double targetVelocity)  //TBD //not using
     {
         shtrMtrCtrlA.set(ControlMode.Velocity, targetVelocity);
+       //shtrMtrCtrlA.set(ControlMode.PercentOutput, targetVelocity);
     }
 
     public void shooterFlyWheelDisable()// not being used
@@ -138,8 +139,7 @@ public class CatzShooter
         return (Math.abs((double) shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity()) * CONV_QUAD_VELOCITY_TO_RPM); 
     }
 
-
-    public void setTargetRPM(double velocity) //Sets the RPM (determined by the button pressed on controller)
+    public void setTargetRPM(double velocity) // Sets the RPM (determined by the button pressed on controller)
     {
         targetRPM = velocity;
     }
@@ -148,8 +148,8 @@ public class CatzShooter
     {
         if(shooterState == SHOOTER_STATE_READY)
         {
-        indexerShootStateCount = 0;
-        shooterState = SHOOTER_STATE_START_SHOOTING;
+            indexerShootStateCount = 0;
+            shooterState = SHOOTER_STATE_START_SHOOTING;
         }
     }
 
@@ -163,7 +163,7 @@ public class CatzShooter
         Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
     }
 
-    public void bangBang(double minRPM, double maxRPM, double flywheelShaftVelocity) //bangbang method
+    public void bangBang(double minRPM, double maxRPM, double flywheelShaftVelocity) // bangbang method
     {
         if (flywheelShaftVelocity > maxRPM)
         {
@@ -316,6 +316,7 @@ public class CatzShooter
                         {
                             shooterOff();
                             Robot.indexer.indexerStop(); 
+                            Robot.indexer.setShooterIsRunning(false);
                         }
                 
                     break;

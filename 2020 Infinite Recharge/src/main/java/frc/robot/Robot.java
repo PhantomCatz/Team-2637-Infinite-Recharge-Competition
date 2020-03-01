@@ -43,7 +43,7 @@ public class Robot extends TimedRobot
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
   public static CatzShooter    shooter;
-  public static CatzClimber    climber;
+  //public static CatzClimber    climber;
 
   public DataCollection dataCollection;
 
@@ -91,7 +91,7 @@ public class Robot extends TimedRobot
     indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber();    
+    //climber    = new CatzClimber();    
     
     pdp = new PowerDistributionPanel();
 
@@ -119,10 +119,13 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean("Use default autonomous?", false);
   
     // Camera Configuration
-    camera = CameraServer.getInstance().startAutomaticCapture();
+    /*camera = CameraServer.getInstance().startAutomaticCapture();
     camera.setFPS(15);
     camera.setResolution(320, 240);
-    camera.setPixelFormat(PixelFormat.kMJPEG);
+    camera.setPixelFormat(PixelFormat.kMJPEG);*/
+
+    indexer.startIndexerThread();
+    shooter.setShooterVelocity();
   }
 
   @Override
@@ -157,7 +160,16 @@ public class Robot extends TimedRobot
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
 
-  }
+    SmartDashboard.putBoolean("Deployed", intake.getDeployedLimitSwitchState());
+    SmartDashboard.putBoolean("Stowed",   intake.getStowedLimitSwitchState());
+
+    
+    indexer.debugSmartDashboard();
+    indexer.smartDashboard();
+
+    shooter.debugSmartDashboard();
+    shooter.smartdashboard();
+    }
 
   @Override
   public void autonomousInit() 
@@ -205,35 +217,43 @@ public class Robot extends TimedRobot
       driveTrain.shiftToLowGear();
     }
 //-----------------------------------------------INTAKE---------------------------------------------------
-    if(xboxDrv.getStickButtonPressed(Hand.kLeft))
+    if(xboxDrv.getStickButtonPressed(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
     {
       intake.deployIntake();
     }
-
-    if(xboxDrv.getStickButtonPressed(Hand.kRight))
+    else if(xboxDrv.getStickButtonPressed(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
     {
       intake.stowIntake();
+    }
+    else
+    {
+      intake.stopDeploying();
     }
 
     if(xboxDrv.getTriggerAxis(Hand.kLeft) > 0.2)
     {
       intake.intakeRollerIn();
     }
-
-    if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
+    else if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
     {
       intake.intakeRollerOut();
     }
+    else
+    {
+      intake.intakeRollerOff();
+    }
+
 
     if(xboxDrv.getAButton())
     {
       intake.applyBallCompression();
-    }
+    } 
     //--------------------------------------------SHOOTER-------------------------------------------------
 
     if(xboxAux.getPOV() == DPAD_UP)
     {
       shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_LO);
+      //shooter.setTargetVelocity(.25);
     }
 
     if(xboxAux.getPOV() == DPAD_LT)
@@ -262,9 +282,9 @@ public class Robot extends TimedRobot
    if(xboxAux.getBackButton())
    {
     indexer.indexerReversed();
-   }
+   } 
 //--------------------------------------------------CLIMB----------------------------------------------
-   if(xboxAux.getYButton())
+   /*if(xboxAux.getYButton())
    {
      climber.runWinch();
    }
@@ -274,10 +294,10 @@ public class Robot extends TimedRobot
       climber.extendLightsaber();
    }
 
-   if(xboxAux.getY(Hand.kLeft)> -0.2)
+   if(xboxAux.getY(Hand.kLeft)< -0.2)
    {
       climber.retractLightsaber();
-   }
+   }*/
 
 //ONLY TESTING 
    if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
@@ -299,10 +319,10 @@ public class Robot extends TimedRobot
   {
     dataCollection.stopDataCollection();
     
-    for (int i = 0; i <dataArrayList.size();i++)
+    /*for (int i = 0; i <dataArrayList.size();i++)
     {
        System.out.println(dataArrayList.get(i));
-    }  
+    }*/
 
     try 
     {

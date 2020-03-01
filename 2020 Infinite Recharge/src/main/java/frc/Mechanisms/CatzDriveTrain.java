@@ -193,7 +193,7 @@ public class CatzDriveTrain
         double position = 0.0;
         if(side.equals("LT"))
         {
-            position = Robot.climber.climbMtrCtrlA.getSensorCollection().getQuadraturePosition(); //LT encoder is connnected to climber MC A
+            //position = Robot.climber.climbMtrCtrlA.getEncoder().getPosition(); //LT encoder is connnected to climber MC A
         }
         else if(side.equals("RT"))
         {
