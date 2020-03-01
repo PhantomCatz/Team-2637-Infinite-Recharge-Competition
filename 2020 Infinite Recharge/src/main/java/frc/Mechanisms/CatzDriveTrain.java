@@ -1,5 +1,7 @@
 package frc.Mechanisms;
 
+import javax.swing.text.StyleContext.SmallAttributeSet;
+
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
@@ -9,6 +11,7 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -42,9 +45,9 @@ public class CatzDriveTrain
     private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
     private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
 
-    private final double GEAR_RATION     = 11/44;
+    private final double GEAR_RATION      = 11/44;
     private final double LOW_GEAR_RATION  = 14/60;
-    private final double HIGH_GEAR_RATIO = 24/50;
+    private final double HIGH_GEAR_RATIO  = 24/50;
     
     private final double integratedEncCountsPerRev = 2048;
 
@@ -63,15 +66,15 @@ public class CatzDriveTrain
 
     private SupplyCurrentLimitConfiguration drvTrainCurrentLimit;
 
-    private boolean enableCurrentLimit = true; 
-    private int currentLimitAmps = 60;
-    private int currentLimitTriggerAmps = 80;
+    private boolean enableCurrentLimit     = true; 
+    private int currentLimitAmps           = 60;
+    private int currentLimitTriggerAmps    = 80;
     private int currentLimitTimeoutSeconds = 5;
 
     private final int PID_IDX_CLOSED_LOOP = 0;
-    private final int PID_TIMEOUT_MS = 10;
+    private final int PID_TIMEOUT_MS      = 10;
 
-    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.95; //0.98;
+    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.945; //0.98;
 
     public final double PID_P = 0.05; // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
@@ -86,13 +89,29 @@ public class CatzDriveTrain
 
     public double distanceGoal;
     public double distanceMoved;
-    public final double STOP_THRESHOLD = 10;
-    public final double SLOW_THRESHOLD = 24;
+    public final double STOP_THRESHOLD = 0.5;
+    public final double SLOW_THRESHOLD = 30;
 
-    public final double ENCODER_COUNTS_PER_INCH_LT = 1046.6;
-    public final double ENCODER_COUNTS_PER_INCH_RT = 1025.7;
+    public final double ENCODER_COUNTS_PER_INCH_LT = 1014.5; //without weight: 1046.6
+    public final double ENCODER_COUNTS_PER_INCH_RT = 964; //without weight: 1025.7
 
     public final int DRIVE_DIST_MED_SPEED = 12000;
+    public final int TURN_SPEED           = 12000;
+
+    public final double TO_RADIANS = Math.PI/180;
+    public final double TO_DEGREES = 180/Math.PI;
+
+    public double currentEncPosition;
+    public double turnRate;
+
+    public double r1;
+    public double r2;
+    public double s1Dot;
+    public double s2Dot;
+    public double s1Conv;
+    public double s2Conv;
+
+    public Timer turnT;
 
     public CatzDriveTrain() 
     {
@@ -135,7 +154,27 @@ public class CatzDriveTrain
 
         pressureSensor = new AnalogInput(PRESSURE_SENSOR_ANALOG_PORT);
 
+        turnT = new Timer();
+
         setDriveTrainPIDConfiguration();
+    }
+
+    public void setMotorsToCoast()
+    {
+        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
+    }
+    
+    public void setMotorsToBrake()
+    {
+      
+        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Brake);
+
     }
 
     public void setDriveTrainPIDConfiguration() 
@@ -164,19 +203,20 @@ public class CatzDriveTrain
          drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); */
     }
 
-    public void monitorEncoderPosition()
+    public void monitorEncoderPositionTurn()
     {
         if (runningDistanceDrive == true)
         {
-            distanceMoved = leftEncoderDistanceMoved();
+            currentEncPosition = getIntegratedEncPosition("LT");
+            distanceMoved = leftEncoderDistanceMoved(currentEncPosition);
 
-            SmartDashboard.putNumber("Left Encoder Distance", leftEncoderDistanceMoved());
-            SmartDashboard.putNumber("Left Encoder Position", getIntegratedEncPosition("LT"));
-            SmartDashboard.putNumber("Left Initial Encoder Distance", leftInitialEncoderPos);
+            
+            SmartDashboard.putNumber("Encoder Position", currentEncPosition);
+            SmartDashboard.putNumber("Initial Encoder Distance", leftInitialEncoderPos);
             SmartDashboard.putNumber("Distance Moved", distanceMoved);
-            SmartDashboard.putNumber("Delta Encoder", (getIntegratedEncPosition("LT") - leftInitialEncoderPos));
+            SmartDashboard.putNumber("Delta Encoder", (currentEncPosition - leftInitialEncoderPos));
 
-            System.out.println((getIntegratedEncPosition("LT") - leftInitialEncoderPos) + " = " + getIntegratedEncPosition("LT") + " - " + leftInitialEncoderPos);
+            //System.out.println((currentEncPosition - leftInitialEncoderPos) + " = " + currentEncPosition + " - " + leftInitialEncoderPos);
 
             double distanceToGoal = distanceGoal - distanceMoved;
 
@@ -190,8 +230,43 @@ public class CatzDriveTrain
 
             else if (distanceToGoal < SLOW_THRESHOLD)
             {
-                setTargetVelocity(DRIVE_DIST_MED_SPEED/2);
-                setTargetVelocity(DRIVE_DIST_MED_SPEED/2);
+                System.out.println("Starting slow: " + (getIntegratedEncVelocity("LT")*0.95));
+                setTargetVelocity(getIntegratedEncVelocity("LT")*0.98);
+                
+            }
+        }
+    }
+
+    public void monitorEncoderPosition()
+    {
+        if (runningDistanceDrive == true)
+        {
+            currentEncPosition = getIntegratedEncPosition("LT");
+            distanceMoved = leftEncoderDistanceMoved(currentEncPosition);
+
+            
+            SmartDashboard.putNumber("Encoder Position", currentEncPosition);
+            SmartDashboard.putNumber("Initial Encoder Distance", leftInitialEncoderPos);
+            SmartDashboard.putNumber("Distance Moved", distanceMoved);
+            SmartDashboard.putNumber("Delta Encoder", (currentEncPosition - leftInitialEncoderPos));
+
+            //System.out.println((currentEncPosition - leftInitialEncoderPos) + " = " + currentEncPosition + " - " + leftInitialEncoderPos);
+
+            double distanceToGoal = distanceGoal - distanceMoved;
+
+            SmartDashboard.putNumber("Distance To Goal", distanceToGoal);
+
+            if (distanceToGoal < STOP_THRESHOLD)
+            {
+                setTargetVelocity(0);
+                runningDistanceDrive = false;
+            }
+
+            else if (distanceToGoal < SLOW_THRESHOLD)
+            {
+                System.out.println("Starting slow: " + (getIntegratedEncVelocity("LT")*0.95));
+                setTargetVelocity(getIntegratedEncVelocity("LT")*0.98);
+                
             }
         }
     }
@@ -207,10 +282,86 @@ public class CatzDriveTrain
         }
     }
 
-    public double leftEncoderDistanceMoved()
+    public void setDistanceGoalTurn(double leftVelocity, double rightVelocity)
+    {
+        if(Robot.navx.getAngle() < 90)
+        {
+            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, leftVelocity);
+            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rightVelocity);
+
+            drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
+            drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
+            turnT.reset();
+            turnT.start();
+        }
+        double deltaTime = 0;
+        double startTime = turnT.get();
+        while(Robot.navx.getAngle() < 90) 
+        {
+            deltaTime = turnT.get() - startTime;
+            SmartDashboard.putNumber("deltaTime", deltaTime);
+        }
+
+        setTargetVelocity(0);
+
+        
+    }
+
+    public void radialTurn(double radiusOfCurvature, double turnRateDegrees, double targetAngleDegrees)
+    {
+        turnT.reset();
+
+        r1 = radiusOfCurvature;
+        r2 = radiusOfCurvature + (7.0/3.0);
+
+        turnRate = turnRateDegrees*(Math.PI/180);
+
+        s1Dot = r1 * turnRate;
+        s2Dot = r2 * turnRate;
+
+        s1Conv = s1Dot * ENCODER_COUNTS_PER_INCH_RT * 12 *(1.0/10.0);
+        s2Conv = s2Dot * ENCODER_COUNTS_PER_INCH_LT * 12 *(1.0/10.0);
+
+        SmartDashboard.putNumber("s1", s1Dot);
+        SmartDashboard.putNumber("s2", s2Dot);
+        SmartDashboard.putNumber("s1Conv", s1Conv);
+        SmartDashboard.putNumber("s2Conv", s2Conv);
+        SmartDashboard.putNumber("TargetAngle", targetAngleDegrees);
+        SmartDashboard.putNumber("TurnRateDegrees", turnRateDegrees);
+
+        double targetAngle = targetAngleDegrees * (Math.PI / 180);
+        double timeOut = (targetAngle)/turnRate;
+       
+        turnT.start();
+
+        SmartDashboard.putNumber("Time Out", timeOut);
+
+        double deltaTime;
+        double timeStart = turnT.get();
+
+        while ((turnT.get() - timeStart) < 2)
+        {
+            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, s2Conv);
+            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -s1Conv * DRIVE_STRAIGHT_PID_TUNING_CONSTANT);
+
+            drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
+            drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
+
+            deltaTime = turnT.get() - timeStart;
+            SmartDashboard.putNumber("Delta time", deltaTime);
+        }
+        if(turnT.get() > timeOut)
+        {
+            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, 0);
+            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, 0);
+        }
+
+    }
+
+    public double leftEncoderDistanceMoved(double encoderPosition)
     {  
         //System.out.println((getIntegratedEncPosition("LT") - leftInitialEncoderPos) + " = " + getIntegratedEncPosition("LT") + " - " + leftInitialEncoderPos);
-        return (getIntegratedEncPosition("LT") - leftInitialEncoderPos) / ENCODER_COUNTS_PER_INCH_LT;
+        return (encoderPosition - leftInitialEncoderPos) / ENCODER_COUNTS_PER_INCH_LT;
     }
 
     public double rightEncoderDistanceMoved()

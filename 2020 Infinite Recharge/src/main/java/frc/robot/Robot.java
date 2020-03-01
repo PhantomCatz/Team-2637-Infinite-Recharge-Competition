@@ -9,7 +9,10 @@ package frc.robot;
 
 import java.util.ArrayList;
 
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -55,6 +58,8 @@ public class Robot extends TimedRobot
 
   public boolean testFlag = false;
 
+  public static AHRS navx;
+
   public boolean check_boxL = false;
   public boolean check_boxM = false;
   public boolean check_boxR = false;
@@ -67,10 +72,10 @@ public class Robot extends TimedRobot
   public void robotInit() 
   {
     driveTrain = new CatzDriveTrain();
-    indexer    = new CatzIndexer();
+   /* indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber();    
+    climber    = new CatzClimber();   */ 
     
     pdp = new PowerDistributionPanel();
 
@@ -86,6 +91,8 @@ public class Robot extends TimedRobot
     xboxDrv = new XboxController(XBOX_DRV_PORT);
     xboxAux = new XboxController(XBOX_AUX_PORT);
    
+    navx = new AHRS(SPI.Port.kMXP, (byte)200);
+
     //create a path chooser
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, true);
@@ -96,6 +103,8 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, false);
     
     SmartDashboard.putBoolean("Use default autonomous?", false);
+
+    navx.reset();
   
   }
 
@@ -129,7 +138,9 @@ public class Robot extends TimedRobot
 		// Update display
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, prev_boxL);
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
-		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
+    SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
+    
+    SmartDashboard.putNumber("NavxAngle", navx.getAngle());
 
   }
 
@@ -148,7 +159,7 @@ public class Robot extends TimedRobot
   public void autonomousPeriodic() 
   {
 
-    driveTrain.setTargetVelocity(5000);
+    //driveTrain.setTargetVelocity(5000);
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -166,8 +177,8 @@ public class Robot extends TimedRobot
   @Override
   public void teleopInit() 
   {
-    driveTrain.instantiateDifferentialDrive();
-    //driveTrain.setDriveTrainPIDConfiguration();
+    //driveTrain.instantiateDifferentialDrive();
+    driveTrain.setDriveTrainPIDConfiguration();
 
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
@@ -179,8 +190,16 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    //driveTrain.monitorEncoderPosition();
+
+    //SmartDashboard.putNumber("Angle", navx.getAngle());
+
+    if (xboxDrv.getYButton())
+    {
+      navx.reset();
+    }
+
+    //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    driveTrain.monitorEncoderPosition();
 
     //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
@@ -206,12 +225,18 @@ public class Robot extends TimedRobot
 
     if(xboxDrv.getXButton())
     {
-      driveTrain.setDistanceGoal(240);
+      //driveTrain.setDistanceGoal(240);
+      //driveTrain.radialTurn(6.25, 90, 90);
+      
+      driveTrain.setDistanceGoalTurn(16000, 4000);
+
     }
 
-    if(xboxDrv.getBumper(Hand.kLeft))
+    if(xboxDrv.getTriggerAxis(Hand.kLeft) == 1)
     {
-      
+
+      driveTrain.setMotorsToBrake();
+
     }
 
   }
@@ -219,6 +244,7 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit() 
   {
+    driveTrain.setMotorsToCoast();
     dataCollection.stopDataCollection();
     
    /* for (int i = 0; i <dataArrayList.size();i++)
