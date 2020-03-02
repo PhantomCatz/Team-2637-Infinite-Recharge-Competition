@@ -7,7 +7,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
-import frc.Mechanisms.CatzIndexer;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
@@ -53,9 +52,9 @@ public class CatzShooter
 
     final int NUM_OF_DATA_SAMPLES_TO_AVERAGE = 5;
 
-    final double SHOOTER_THREAD_WAITING_TIME     = 0.040;
+    final double SHOOTER_THREAD_PERIOD     = 0.040;
     final double SHOOTER_RAMP_TIMEOUT_SEC        = 6.0;
-    final double INDEXER_SHOOT_TIME_SEC          = 1.35;
+    final double INDEXER_SHOOT_TIME_SEC          = 1.75;
     final double SHOOTER_AVG_VEL_SAMPLE_TIME_SEC = 0.1;
 
     public double targetRPM          = 0.0;
@@ -109,11 +108,11 @@ public class CatzShooter
         shtrMtrCtrlA.config_IntegralZone(0, 0);
 
          //limits how long the shooter runs so it doesn't go too long (limiter)
-        indexerShootStateCountLimit = (int)Math.round( (INDEXER_SHOOT_TIME_SEC / SHOOTER_THREAD_WAITING_TIME) + 0.5 ); 
+        indexerShootStateCountLimit = (int)Math.round( (INDEXER_SHOOT_TIME_SEC / SHOOTER_THREAD_PERIOD) + 0.5 ); 
         //equation which limits how long the ramp up goes (don't want it to go too much/fast)
-        rampStateCountLimit         = (int)Math.round( (SHOOTER_RAMP_TIMEOUT_SEC / SHOOTER_THREAD_WAITING_TIME) + 0.5);
+        rampStateCountLimit         = (int)Math.round( (SHOOTER_RAMP_TIMEOUT_SEC / SHOOTER_THREAD_PERIOD) + 0.5);
         //equation which determines the time between each sample (flywheel velocity)
-        samplingVelocityCountLimit  = (int)Math.round( (SHOOTER_AVG_VEL_SAMPLE_TIME_SEC / SHOOTER_THREAD_WAITING_TIME) + 0.5);
+        samplingVelocityCountLimit  = (int)Math.round( (SHOOTER_AVG_VEL_SAMPLE_TIME_SEC / SHOOTER_THREAD_PERIOD) + 0.5);
         
         setShooterVelocity();
     }
@@ -200,6 +199,7 @@ public class CatzShooter
                 {
                     case SHOOTER_STATE_OFF: //when there is no targetRPM (basically when no button is pressed) will be shooter most of the time
                         shooterPower = SHOOTER_OFF_POWER;
+
                         if(targetRPM > 0.0)
                         {
                             indexerShootStateCount = 0;
@@ -264,9 +264,9 @@ public class CatzShooter
                             {
                                 
                                 for(int i = 0; i < NUM_OF_DATA_SAMPLES_TO_AVERAGE; i++ )
-                                    {  
+                                {  
                                     sumOfVelocityData = sumOfVelocityData + velocityData[i];
-                                    }
+                                }
                         
                                 avgVelocity = sumOfVelocityData / NUM_OF_DATA_SAMPLES_TO_AVERAGE;
                                 sumOfVelocityData = 0.0;
@@ -302,21 +302,25 @@ public class CatzShooter
                     case SHOOTER_STATE_START_SHOOTING: 
                         shooterPower = SHOOTER_SHOOT_POWER;
                         shtrMtrCtrlA.set(shooterPower);    
-                    
+                        System.out.println("TS1: " + shootTime + " : " + flywheelShaftVelocity + " Power: " + shooterPower);
+
                         if(flywheelShaftVelocity > targetRPM + SHOOTER_RPM_START_OFFSET)
                         {
                             Robot.indexer.indexerStart(); 
                             shooterState = SHOOTER_STATE_WAIT_FOR_SHOOT_DONE;
+                            System.out.println("TS2: " + shootTime + " : " + flywheelShaftVelocity + " Power: " + shooterPower);
                         }
                     break;
 
                     case SHOOTER_STATE_WAIT_FOR_SHOOT_DONE: //will count for a certain amount of time until it switches the shooter off and sets state to OFF
+                        System.out.println("TS3: " + shootTime + " : " + flywheelShaftVelocity + " Power: " + shooterPower);
                         indexerShootStateCount++;
                         if(indexerShootStateCount > indexerShootStateCountLimit)
                         {
                             shooterOff();
                             Robot.indexer.indexerStop(); 
                             Robot.indexer.setShooterIsRunning(false);
+                            System.out.println("TS4: " + shootTime + " : " + flywheelShaftVelocity + " Power: " + shooterPower);
                         }
                 
                     break;
@@ -326,7 +330,7 @@ public class CatzShooter
                         shooterOff();
                     break;
             }        
-            Timer.delay(SHOOTER_THREAD_WAITING_TIME);
+            Timer.delay(SHOOTER_THREAD_PERIOD);
         }
     }); //end of thread
         shooterThread.start();

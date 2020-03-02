@@ -17,8 +17,8 @@ public class CatzIndexer
     private final int BALL_SENSOR_OUTPUT_DIO_PORT      = 6;
 
     private final double BELT_SPEED_LOAD         = 0.4;
-    private final double BELT_SPEED_SHOOT        = 0.4;
-    private final double BALL_IN_RANGE_THRESHOLD = 6.0;     //If Ultrasonic detects ball below this range (inches), motor is turned on
+    private final double BELT_SPEED_SHOOT        = 0.5;
+    private final double BALL_IN_RANGE_THRESHOLD = 5.5;     //If Ultrasonic detects ball below this range (inches), motor is turned on
     public        double sensorRange             = 0.0;    //Ultrasonic output value
 
     public DigitalInput indexerEntranceSwitch;
@@ -64,6 +64,8 @@ public class CatzIndexer
         indexerMtrCtrl.setIdleMode(IdleMode.kBrake);
         indexerMtrCtrl.setSmartCurrentLimit(INDEXER_MC_CURRENT_LIMIT);
         indexerMtrCtrl.set(0.0);
+
+        transferingBallToIndexer = false;
     }
 
     public void startIndexerThread()
@@ -78,7 +80,6 @@ public class CatzIndexer
                 if(shooterRunning)
                 {
                     ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
-                    //System.out.println("Shooter running");
                 }
                 else 
                 {
@@ -86,7 +87,6 @@ public class CatzIndexer
                     {
                         reachedMaxCapacity = true;  //marks indexer as "full"
                         indexerMtrCtrl.set(0.0);
-                        //System.out.println("INDEXER OFF");
                     }
                     else  
                     {   
@@ -188,6 +188,12 @@ public class CatzIndexer
     public void indexerReversed()
     {   
         indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+    }
+
+    public void clearSwitchState()
+    { 
+        indexerEntranceSwitchState = BALL_PRESENT; 
+        indexerExitSwitchState     = BALL_PRESENT;  
     }
 
     public void debugSmartDashboard()

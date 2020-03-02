@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 //import edu.wpi.first.wpilibj.DigitalInput;  //Currently using SparkMax Data Port
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 
 
@@ -22,24 +23,24 @@ public class CatzIntake
     private final int INTAKE_DEPLOY_MC_CAN_ID               = 12;
 
     private final double MTR_POWER_FIGURE8                  = -0.9;
-    private final double MTR_POWER_ROLLER                   =  0.7;
+    private final double MTR_POWER_ROLLER                   =  0.6;
 
-    private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.2;
+    private final double COMPRESSION_POWER                  = 0.3;
+
+    private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.35;
     private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
-    private final double INTAKE_MOTOR_POWER_START_STOW      = -0.2;
-    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.1;
+    private final double INTAKE_MOTOR_POWER_START_STOW      = -0.5;
+    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.2;
 
-    private final double COMPRESSION_POWER                  = 0.15;
+    final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
+    final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 1.500;
+    final double STOW_REDUCE_POWER_TIME_OUT_SEC             = 1.500;
 
     private final int INTAKE_MODE_NULL                      = 0;
     private final int INTAKE_MODE_DEPLOY_START              = 1;
     private final int INTAKE_MODE_DEPLOY_REDUCE_POWER       = 2;
     private final int INTAKE_MODE_STOW_START                = 3;
     private final int INTAKE_MODE_STOW_REDUCE_POWER         = 4;
-
-    final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
-    final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 1.000;
-    final double STOW_REDUCE_POWER_TIME_OUT_SEC             = 1.000;
 
     private WPI_VictorSPX intakeFigure8MtrCtrl;
     public  WPI_TalonSRX  intakeRollerMtrCtrl; // changed to public because dataport is being used on drivetrain?
@@ -83,6 +84,8 @@ public class CatzIntake
 
         deployPowerCountLimit = (int) Math.round((DEPLOY_REDUCE_POWER_TIME_OUT_SEC / INTAKE_THREAD_WAITING_TIME) + 0.5);
         stowPowerCountLimit   = (int) Math.round((STOW_REDUCE_POWER_TIME_OUT_SEC   / INTAKE_THREAD_WAITING_TIME) + 0.5);
+        SmartDashboard.putNumber("stow count limit", stowPowerCountLimit);
+        SmartDashboard.putNumber("deploy count limit", deployPowerCountLimit);
     }
 
     // ---------------------------------------------ROLLER---------------------------------------------
@@ -120,7 +123,6 @@ public class CatzIntake
                 switch(intakeMode)
                 {
                     case INTAKE_MODE_DEPLOY_START:
-                        timeCounter++;
 
                         if(timeCounter < deployPowerCountLimit)
                         {
@@ -129,6 +131,7 @@ public class CatzIntake
 
                             System.out.println("T1: " + shootTime);
                         }
+                        timeCounter++;
                     break;
 
                     case INTAKE_MODE_DEPLOY_REDUCE_POWER:
@@ -136,21 +139,22 @@ public class CatzIntake
                         {
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_DEPLOY);
                             intakeDeployed = true;
-                            
+                            intakeMode = INTAKE_MODE_NULL;
                             System.out.println("T2: " + shootTime);
                         }
+                        timeCounter++;
                     break;
 
                     case INTAKE_MODE_STOW_START:
-                        timeCounter++;
                         if(timeCounter < stowPowerCountLimit)
                         {
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
                             intakeMode = INTAKE_MODE_STOW_REDUCE_POWER;
 
-                            System.out.println("T3: " + shootTime);
+                            System.out.println("T3A: " + shootTime);
                         }
                         intakeDeployed = false;
+                        timeCounter++;
                     break;
 
                     case INTAKE_MODE_STOW_REDUCE_POWER:
@@ -159,8 +163,9 @@ public class CatzIntake
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_STOW);
 
                             System.out.println("T4: " + shootTime);
+                            intakeMode = INTAKE_MODE_NULL;
                         }
-                        
+                        timeCounter++;
                     break;
 
                     default:
@@ -180,7 +185,7 @@ public class CatzIntake
     {
         timeCounter = 0;
         //intakeMode = INTAKE_MODE_DEPLOY_START;
-        intakeDeployMtrCtrl.set(0.23);
+        intakeDeployMtrCtrl.set(0.25);
     }
 
 
@@ -188,7 +193,7 @@ public class CatzIntake
     {
         timeCounter = 0;
         //intakeMode = INTAKE_MODE_STOW_START;
-        intakeDeployMtrCtrl.set(-0.23);
+        intakeDeployMtrCtrl.set(-0.25);
     }
 
     public void stopDeploying()
@@ -198,10 +203,11 @@ public class CatzIntake
 
     public void applyBallCompression()
     {
-        if(intakeDeployed == true)
+        intakeDeployMtrCtrl.set(COMPRESSION_POWER);
+        /*if(intakeDeployed == true)
         {
-            intakeDeployMtrCtrl.set(COMPRESSION_POWER);
-        }
+           
+        }*/
     }
 
     // ---------------------------------------------Intake Limit Switches---------------------------------------------   

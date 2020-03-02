@@ -43,7 +43,7 @@ public class Robot extends TimedRobot
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
   public static CatzShooter    shooter;
-  //public static CatzClimber    climber;
+  public static CatzClimber    climber;
 
   public DataCollection dataCollection;
 
@@ -91,7 +91,7 @@ public class Robot extends TimedRobot
     indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    //climber    = new CatzClimber();    
+    climber    = new CatzClimber();    
     
     pdp = new PowerDistributionPanel();
 
@@ -124,8 +124,11 @@ public class Robot extends TimedRobot
     camera.setResolution(320, 240);
     camera.setPixelFormat(PixelFormat.kMJPEG);*/
 
+    intake.intakeControl();
     indexer.startIndexerThread();
     shooter.setShooterVelocity();
+    //climber.climbControl();
+    
   }
 
   @Override
@@ -169,6 +172,8 @@ public class Robot extends TimedRobot
 
     shooter.debugSmartDashboard();
     shooter.smartdashboard();
+
+    
     }
 
   @Override
@@ -196,8 +201,10 @@ public class Robot extends TimedRobot
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
     dataCollection.startDataCollection();
+
+    indexer.clearSwitchState();
   }
 
   @Override
@@ -217,14 +224,18 @@ public class Robot extends TimedRobot
       driveTrain.shiftToLowGear();
     }
 //-----------------------------------------------INTAKE---------------------------------------------------
-    if(xboxDrv.getStickButtonPressed(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
+    if(xboxDrv.getStickButton(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
     {
       intake.deployIntake();
     }
-    else if(xboxDrv.getStickButtonPressed(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
+    else if(xboxDrv.getStickButton(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
     {
       intake.stowIntake();
     }
+    else if(xboxDrv.getAButton() == true)
+    {
+      intake.applyBallCompression();
+    } 
     else
     {
       intake.stopDeploying();
@@ -243,11 +254,6 @@ public class Robot extends TimedRobot
       intake.intakeRollerOff();
     }
 
-
-    if(xboxDrv.getAButton())
-    {
-      intake.applyBallCompression();
-    } 
     //--------------------------------------------SHOOTER-------------------------------------------------
 
     if(xboxAux.getPOV() == DPAD_UP)
@@ -298,6 +304,19 @@ public class Robot extends TimedRobot
    {
       climber.retractLightsaber();
    }*/
+
+   if(xboxDrv.getBButton())
+   {
+     climber.lightsaberExtend();
+   }
+   else if(xboxDrv.getXButton())
+   {
+     climber.lightsaberRetract();;
+   }
+   else
+   {
+     climber.lightsaberOff();
+   }
 
 //ONLY TESTING 
    if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
