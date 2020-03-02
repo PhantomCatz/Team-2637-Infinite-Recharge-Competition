@@ -10,6 +10,7 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSink;
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -45,6 +46,7 @@ public class Robot extends TimedRobot
 
   private UsbCamera camera1;
   private UsbCamera camera2;
+  private VideoSink server;
 
   private NetworkTableEntry cameraSelection;
 
@@ -70,6 +72,7 @@ public class Robot extends TimedRobot
   private static double cameraResolutionWidth = 320;
   private static double cameraResolutionHeight = 240;
   private static double cameraFPS = 15;
+  
 
   private final int RPM_RANGE_MIN = 4100;
   private final int RPM_RANGE_MAX = 4300;
@@ -95,12 +98,14 @@ public class Robot extends TimedRobot
     camera2.setPixelFormat(PixelFormat.kYUYV);
     //camera2 = new UsbCamera("camera2", 1);
 
+    server =  CameraServer.getInstance().getServer();
+
     //cameraSelection = NetworkTableInstance.getDefault().getTable("").getEntry("CameraSelection");
     
     //dataCollection.dataCollectionInit(dataArrayList);
 
-    /*xboxDrv = new XboxController(XBOX_DRV_PORT);
-    xboxAux = new XboxController(XBOX_AUX_PORT);
+    xboxDrv = new XboxController(XBOX_DRV_PORT);
+    /*xboxAux = new XboxController(XBOX_AUX_PORT);
 
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
@@ -158,6 +163,20 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
+
+    if(xboxDrv.getAButton())
+    {
+
+      server.setSource(camera1);
+
+    }
+
+    if(xboxDrv.getBButton())
+    {
+
+      server.setSource(camera2);
+
+    }
 
     /*driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
 
@@ -222,13 +241,6 @@ public class Robot extends TimedRobot
       
     }*/
 
-    if (xboxDrv.getAButtonPressed()) {
-      System.out.println("Setting camera 2");
-      cameraSelection.setString(camera2.getName());
-  } else if (xboxDrv.getAButtonReleased()) {
-      System.out.println("Setting camera 1");
-      cameraSelection.setString(camera1.getName());
-  }
   }
   
   @Override
