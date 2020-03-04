@@ -1,0 +1,9 @@
+[
+  {
+    "artifact": "frcJava (in project Camera Test)",
+    "target": "roborio",
+    "debugfile": "frcJava_roborio.debugconfig",
+    "project": "Camera Test",
+    "language": "java"
+  }
+]

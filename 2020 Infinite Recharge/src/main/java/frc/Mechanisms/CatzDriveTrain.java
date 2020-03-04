@@ -19,10 +19,10 @@ import frc.robot.Robot;
 
 public class CatzDriveTrain
 {
-    public WPI_TalonFX drvTrainMtrCtrlLTFrnt;
-    public WPI_TalonFX drvTrainMtrCtrlLTBack;
-    public WPI_TalonFX drvTrainMtrCtrlRTFrnt;
-    public WPI_TalonFX drvTrainMtrCtrlRTBack;
+    public static WPI_TalonFX drvTrainMtrCtrlLTFrnt;
+    public static WPI_TalonFX drvTrainMtrCtrlLTBack;
+    public static WPI_TalonFX drvTrainMtrCtrlRTFrnt;
+    public static WPI_TalonFX drvTrainMtrCtrlRTBack;
 
     public final int DRVTRAIN_LT_FRNT_MC_CAN_ID = 1;
     public final int DRVTRAIN_LT_BACK_MC_CAN_ID = 2;
@@ -74,89 +74,47 @@ public class CatzDriveTrain
     private final int PID_IDX_CLOSED_LOOP = 0;
     private final int PID_TIMEOUT_MS      = 10;
 
-    private final double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.945; //0.98;
+    private final static double DRIVE_STRAIGHT_PID_TUNING_CONSTANT = 0.945; // 0.98;
 
     public final double PID_P = 0.05; // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
-    public final double PID_D = 0.1;   // original value was 0.1
-    public final double PID_F = 0.02; // original value was 0.005    0.02 value for target speed 16000
-    public final int IZONE    = 10;
+    public final double PID_D = 0.1; // original value was 0.1
+    public final double PID_F = 0.02; // original value was 0.005 0.02 value for target speed 16000
+    public final int IZONE = 10;
 
-    public double leftInitialEncoderPos;
-    public double rightInitialEncoderPos;
-
-    public boolean runningDistanceDrive = false;
-
-    public double distanceGoal;
-    public double distanceMoved;
-    public final double STOP_THRESHOLD_DIST = 0.5;
-    public final double SLOW_THRESHOLD_DIST = 30;
-
-    public final double ENCODER_COUNTS_PER_INCH_LT = 1014.5; //without weight: 1046.6
-    public final double ENCODER_COUNTS_PER_INCH_RT = 964; //without weight: 1025.7
-
-    public final int DRIVE_DIST_MED_SPEED = 12000;
-    public final int TURN_SPEED           = 12000;
-
-    public final double TO_RADIANS = Math.PI/180;
-    public final double TO_DEGREES = 180/Math.PI;
-
-    public final double STOP_THRESHOLD_ANGLE = 2;
-    public final double SLOW_THRESHOLD_ANGLE = 50;
-
-    public boolean runningRadialTurn = false;
-    public double angleGoal;
-    public double angleToTurn;
-
-    public double currentEncPosition;
-    public double turnRateRadians;
-
-    public double r1;
-    public double r2;
-    public double s1Dot;
-    public double s2Dot;
-    public double s1Conv;
-    public double s2Conv;
-
-    public Timer turnT;
-
-    public int lVelocity;
-    public int rVelocity;
-
-    public CatzDriveTrain() 
-    {
+    public CatzDriveTrain() {
         drvTrainMtrCtrlLTFrnt = new WPI_TalonFX(DRVTRAIN_LT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlLTBack = new WPI_TalonFX(DRVTRAIN_LT_BACK_MC_CAN_ID);
 
         drvTrainMtrCtrlRTFrnt = new WPI_TalonFX(DRVTRAIN_RT_FRNT_MC_CAN_ID);
         drvTrainMtrCtrlRTBack = new WPI_TalonFX(DRVTRAIN_RT_BACK_MC_CAN_ID);
 
-        //Reset configuration for drivetrain MC's
+        // Reset configuration for drivetrain MC's
         drvTrainMtrCtrlLTFrnt.configFactoryDefault();
         drvTrainMtrCtrlLTBack.configFactoryDefault();
 
         drvTrainMtrCtrlRTFrnt.configFactoryDefault();
         drvTrainMtrCtrlRTBack.configFactoryDefault();
-        
-        //Set current limit
-        drvTrainCurrentLimit = new SupplyCurrentLimitConfiguration(enableCurrentLimit, currentLimitAmps, currentLimitTriggerAmps, currentLimitTimeoutSeconds);
+
+        // Set current limit
+        drvTrainCurrentLimit = new SupplyCurrentLimitConfiguration(enableCurrentLimit, currentLimitAmps,
+                currentLimitTriggerAmps, currentLimitTimeoutSeconds);
 
         drvTrainMtrCtrlLTFrnt.configSupplyCurrentLimit(drvTrainCurrentLimit);
         drvTrainMtrCtrlLTBack.configSupplyCurrentLimit(drvTrainCurrentLimit);
         drvTrainMtrCtrlRTFrnt.configSupplyCurrentLimit(drvTrainCurrentLimit);
         drvTrainMtrCtrlRTBack.configSupplyCurrentLimit(drvTrainCurrentLimit);
 
-        //Set back Motor Controllers to follow front Motor Controllers
+        // Set back Motor Controllers to follow front Motor Controllers
         drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
         drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
 
-        //Set MC's in brake mode
-        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Brake);
-        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Brake);
-        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Brake);
-        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Brake);
+        // Set MC's in brake mode
+        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
 
-        
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
 
@@ -164,22 +122,18 @@ public class CatzDriveTrain
 
         pressureSensor = new AnalogInput(PRESSURE_SENSOR_ANALOG_PORT);
 
-        turnT = new Timer();
-
         setDriveTrainPIDConfiguration();
     }
 
-    public void setMotorsToCoast()
-    {
+    public void setMotorsToCoast() {
         drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
         drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
     }
-    
-    public void setMotorsToBrake()
-    {
-      
+
+    public void setMotorsToBrake() {
+
         drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Brake);
         drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Brake);
         drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Brake);
@@ -187,329 +141,105 @@ public class CatzDriveTrain
 
     }
 
-    public void setDriveTrainPIDConfiguration() 
-    {
-         //Configure feedback device for PID loop
-         drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP, PID_TIMEOUT_MS); //Constants
-         drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP, PID_TIMEOUT_MS);
- 
-         //Configure PID Gain Constants
-         drvTrainMtrCtrlLTFrnt.config_kP(0, PID_P);
-         drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
-         drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
-         drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, IZONE);
+    public void setDriveTrainPIDConfiguration() {
+        // Configure feedback device for PID loop
+        drvTrainMtrCtrlLTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP,
+                PID_TIMEOUT_MS); // Constants
+        drvTrainMtrCtrlRTFrnt.configSelectedFeedbackSensor(FeedbackDevice.IntegratedSensor, PID_IDX_CLOSED_LOOP,
+                PID_TIMEOUT_MS);
 
-         drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
-         drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
-         drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
-         drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, IZONE); 
- 
-        /* drvTrainMtrCtrlRTFrnt.config_kP(0, 0.03);
-         drvTrainMtrCtrlRTFrnt.config_kI(0, 0.0006);
-         drvTrainMtrCtrlRTFrnt.config_kD(0, 0.1);
-         drvTrainMtrCtrlRTFrnt.config_kF(0, 0.005);
-         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); */
+        // Configure PID Gain Constants
+        drvTrainMtrCtrlLTFrnt.config_kP(0, PID_P);
+        drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
+        drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
+        drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
+        drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, IZONE);
+
+        drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
+        drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
+        drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
+        drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
+        drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, IZONE);
+
+        /*
+         * drvTrainMtrCtrlRTFrnt.config_kP(0, 0.03); drvTrainMtrCtrlRTFrnt.config_kI(0,
+         * 0.0006); drvTrainMtrCtrlRTFrnt.config_kD(0, 0.1);
+         * drvTrainMtrCtrlRTFrnt.config_kF(0, 0.005);
+         * drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0);
+         */
     }
 
-    public void monitorEncoderPosition()
-    {
-        if (runningDistanceDrive == true)
-        {
-            currentEncPosition = getIntegratedEncPosition("LT");
-            distanceMoved = leftEncoderDistanceMoved(currentEncPosition);
-
-            
-            SmartDashboard.putNumber("Encoder Position", currentEncPosition);
-            SmartDashboard.putNumber("Initial Encoder Distance", leftInitialEncoderPos);
-            SmartDashboard.putNumber("Distance Moved", distanceMoved);
-            SmartDashboard.putNumber("Delta Encoder", (currentEncPosition - leftInitialEncoderPos));
-
-            //System.out.println((currentEncPosition - leftInitialEncoderPos) + " = " + currentEncPosition + " - " + leftInitialEncoderPos);
-
-            double distanceToGoal = distanceGoal - distanceMoved;
-
-            SmartDashboard.putNumber("Distance To Goal", distanceToGoal);
-
-            if (distanceToGoal < STOP_THRESHOLD_DIST)
-            {
-                setTargetVelocity(0);
-                runningDistanceDrive = false;
-            }
-
-            else if (distanceToGoal < SLOW_THRESHOLD_DIST)
-            {
-                System.out.println("Starting slow: " + (getIntegratedEncVelocity("LT")*0.95));
-                setTargetVelocity(getIntegratedEncVelocity("LT")*0.98);
-                
-            }
-        }
+    public void arcadeDrive(double power, double rotation) {
+        drvTrainDifferentialDrive.arcadeDrive(-power, rotation);
     }
 
-    public void setDistanceGoal(double inches)
-    {
-        if(!runningDistanceDrive)
-        {
-            distanceGoal = inches;
-            runningDistanceDrive = true;
-            leftInitialEncoderPos = drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
-            setTargetVelocity(DRIVE_DIST_MED_SPEED);
-        }
-    }
-
-    public void monitorAngle()
-    {
-        if (runningRadialTurn == true)
-        {
-            double currentAngle = Robot.navx.getAngle();
-            SmartDashboard.putNumber("Current Angle", currentAngle);
-            SmartDashboard.putNumber("turn Time", turnT.get());
-
-            angleToTurn = angleGoal - currentAngle;
-
-            if (angleToTurn < SLOW_THRESHOLD_ANGLE)
-            {
-
-                drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, lVelocity*0.99);
-                drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rVelocity*0.99);
-
-            }
-            else if(angleToTurn < STOP_THRESHOLD_ANGLE)
-            {
-
-                drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, 0);
-                drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, 0);  
-                turnT.stop();
-
-                runningRadialTurn = false;
-            }
-
-
-        }
-
-
-    }
-
-    public void setAngleGoal(double angle, int leftVelocity, int rightVelocity)
-    {
-        if(!runningRadialTurn)
-        {
-            lVelocity= leftVelocity;
-            rVelocity = rightVelocity;
-
-            angleGoal = angle;
-            runningRadialTurn = true;
-            Robot.navx.reset();
-            turnT.start();
-
-            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, leftVelocity);
-            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rightVelocity);
-
-            drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
-            drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
-
-            
-        }
-    }
-
-    public void setVelocityTurn(double leftVelocity, double rightVelocity)
-    {
-        if(Robot.navx.getAngle() < 90)
-        {
-            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, leftVelocity);
-            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rightVelocity);
-
-            drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
-            drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
-            turnT.reset();
-            turnT.start();
-        }
-        double deltaTime = 0;
-        double startTime = turnT.get();
-        while(Robot.navx.getAngle() < 90) 
-        {
-
-            deltaTime = turnT.get() - startTime;
-            SmartDashboard.putNumber("deltaTime", deltaTime);
-
-            SmartDashboard.getNumber("navx angle", Robot.navx.getAngle());
-
-            if (Robot.navx.getAngle() >= SLOW_THRESHOLD_ANGLE)
-            {
-                
-                setTargetVelocity(getIntegratedEncVelocity("LT")*0.98);
-                
-            } 
-
-        }
-
-        setTargetVelocity(0);
-
-        
-    }
-
-    public void radialTurn(double radiusOfCurvature, double turnRateDegrees, double targetAngleDegrees)
-    {
-        turnT.reset();
-
-        r1 = radiusOfCurvature;
-        r2 = radiusOfCurvature + (7.0/3.0);
-
-        turnRateRadians = turnRateDegrees*TO_RADIANS;
-
-        s1Dot = r1 * turnRateRadians;
-        s2Dot = r2 * turnRateRadians;
-
-        s1Conv = s1Dot * ENCODER_COUNTS_PER_INCH_RT * 12 *(1.0/10.0);
-        s2Conv = s2Dot * ENCODER_COUNTS_PER_INCH_LT * 12 *(1.0/10.0);
-
-        SmartDashboard.putNumber("s1", s1Dot);
-        SmartDashboard.putNumber("s2", s2Dot);
-        SmartDashboard.putNumber("s1Conv", s1Conv);
-        SmartDashboard.putNumber("s2Conv", s2Conv);
-        SmartDashboard.putNumber("Target Angle", targetAngleDegrees);
-        SmartDashboard.putNumber("Turn Rate Degrees", turnRateDegrees);
-
-        double targetAngleRadians = targetAngleDegrees * TO_RADIANS;
-        double timeOut = (targetAngleRadians)/turnRateRadians;
-       
-        turnT.start();
-
-        SmartDashboard.putNumber("Time Out", timeOut);
-
-        double deltaTime;
-        double timeStart = turnT.get();
-
-        while ((turnT.get() - timeStart) < 2)
-        {
-            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, s2Conv);
-            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -s1Conv * DRIVE_STRAIGHT_PID_TUNING_CONSTANT);
-
-            drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
-            drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
-
-            deltaTime = turnT.get() - timeStart;
-            SmartDashboard.putNumber("Delta time", deltaTime);
-        }
-        if(turnT.get() > timeOut)
-        {
-            drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, 0);
-            drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, 0);
-        }
-
-    }
-
-    public double leftEncoderDistanceMoved(double encoderPosition)
-    {  
-        //System.out.println((getIntegratedEncPosition("LT") - leftInitialEncoderPos) + " = " + getIntegratedEncPosition("LT") + " - " + leftInitialEncoderPos);
-        return (encoderPosition - leftInitialEncoderPos) / ENCODER_COUNTS_PER_INCH_LT;
-    }
-
-    public double rightEncoderDistanceMoved()
-    {   
-        rightInitialEncoderPos = drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
-        return (getIntegratedEncPosition("RT") - rightInitialEncoderPos) * ENCODER_COUNTS_PER_INCH_RT;
-    }
-
-
-    public void arcadeDrive(double power, double rotation)
-    {
-       drvTrainDifferentialDrive.arcadeDrive(-power, rotation);
-    }
-
-    public void shiftToHighGear()
-    {
+    public void shiftToHighGear() {
         gearShifter.set(Value.kForward);
         isDrvTrainInHighGear = true;
     }
-    
-    public void shiftToLowGear()
-    {
+
+    public void shiftToLowGear() {
         gearShifter.set(Value.kReverse);
         isDrvTrainInHighGear = false;
     }
 
-    public double getMotorTemperature(int id)
-    {
+    public double getMotorTemperature(int id) {
         double temp = 0.0;
-        if(id == DRVTRAIN_LT_FRNT_MC_CAN_ID)
-        {
+        if (id == DRVTRAIN_LT_FRNT_MC_CAN_ID) {
             temp = drvTrainMtrCtrlLTFrnt.getTemperature();
-        } 
-        else if (id == DRVTRAIN_LT_BACK_MC_CAN_ID)
-        {   
+        } else if (id == DRVTRAIN_LT_BACK_MC_CAN_ID) {
             temp = drvTrainMtrCtrlLTBack.getTemperature();
-        }
-        else if (id == DRVTRAIN_RT_FRNT_MC_CAN_ID)
-        {
+        } else if (id == DRVTRAIN_RT_FRNT_MC_CAN_ID) {
             temp = drvTrainMtrCtrlRTFrnt.getTemperature();
-        }
-        else if (id == DRVTRAIN_RT_BACK_MC_CAN_ID)
-        {
+        } else if (id == DRVTRAIN_RT_BACK_MC_CAN_ID) {
             temp = drvTrainMtrCtrlRTBack.getTemperature();
         }
         return temp;
     }
 
-
-
-
-    public double getSrxMagPosition(String side)
-    {
+    public double getSrxMagPosition(String side) {
         side.toUpperCase();
         double position = 0.0;
-        if(side.equals("LT"))
-        {
-            //position = Robot.climber.climbMtrCtrlA.getEncoder().getPosition(); //LT encoder is connnected to climber MC A
-        }
-        else if(side.equals("RT"))
-        {
-            //position = Robot.climber.climbMtrCtrlB.getEncoder().getPosition(); //RT encoder is connected to climber MC B
+        if (side.equals("LT")) {
+            // position = Robot.climber.climbMtrCtrlA.getEncoder().getPosition(); //LT
+            // encoder is connnected to climber MC A
+        } else if (side.equals("RT")) {
+            // position = Robot.climber.climbMtrCtrlB.getEncoder().getPosition(); //RT
+            // encoder is connected to climber MC B
         }
         return position;
     }
 
-    public double getIntegratedEncPosition(String side) 
-    {
+    public static double getIntegratedEncPosition(String side) {
         double position = 0.0;
         side.toUpperCase();
-        if(side.equals("LT"))
-        {
+        if (side.equals("LT")) {
             position = drvTrainMtrCtrlLTFrnt.getSelectedSensorPosition(0);
-        }
-        else if(side.equals("RT"))
-        {
+        } else if (side.equals("RT")) {
             position = drvTrainMtrCtrlRTFrnt.getSelectedSensorPosition(0);
         }
         return position;
     }
-    
-    public double getIntegratedEncVelocity(String side)
-    {
+
+    public static double getIntegratedEncVelocity(String side) {
         double velocity = 0.0;
         side.toUpperCase();
-        if(side.equals("LT"))
-        {
+        if (side.equals("LT")) {
             velocity = drvTrainMtrCtrlLTFrnt.getSensorCollection().getIntegratedSensorVelocity();
-        }
-        else if(side.equals("RT"))
-        {
+        } else if (side.equals("RT")) {
             velocity = drvTrainMtrCtrlRTFrnt.getSensorCollection().getIntegratedSensorVelocity();
         }
         return velocity;
     }
 
-    public void setTargetPosition(double targetPosition)
-    {
+    public void setTargetPosition(double targetPosition) {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Position, targetPosition);
         drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Position, targetPosition);
     }
-    
-    public void setTargetVelocity(double targetVelocity)
-    {
+
+    public static void setTargetVelocity(double targetVelocity) {
         drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, targetVelocity);
-        drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -DRIVE_STRAIGHT_PID_TUNING_CONSTANT*targetVelocity);
+        drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -DRIVE_STRAIGHT_PID_TUNING_CONSTANT * targetVelocity);
         drvTrainMtrCtrlLTBack.follow(drvTrainMtrCtrlLTFrnt);
         drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
     }

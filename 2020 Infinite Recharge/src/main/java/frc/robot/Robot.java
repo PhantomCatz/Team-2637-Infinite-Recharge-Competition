@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.Autonomous.CatzAutonomous;
+import frc.Autonomous.CatzAutonomousPaths;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
 import frc.Mechanisms.CatzClimber;
@@ -35,6 +37,8 @@ import frc.Mechanisms.CatzShooter;
  */
 public class Robot extends TimedRobot
 {
+  public static CatzAutonomousPaths autonPaths;
+  public static CatzAutonomous auton;
   public static CatzDriveTrain driveTrain;
   public static CatzIntake     intake;
   public static CatzIndexer    indexer;
@@ -71,13 +75,16 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
+
+    auton      = new CatzAutonomous();
+    autonPaths = new CatzAutonomousPaths();
     driveTrain = new CatzDriveTrain();
-   /* indexer    = new CatzIndexer();
+    indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber();   */ 
+    climber    = new CatzClimber(); 
     
-    pdp = new PowerDistributionPanel();
+    pdp        = new PowerDistributionPanel();
 
     dataArrayList = new ArrayList<CatzLog>();
 
@@ -90,8 +97,10 @@ public class Robot extends TimedRobot
 
     xboxDrv = new XboxController(XBOX_DRV_PORT);
     xboxAux = new XboxController(XBOX_AUX_PORT);
+
+    driveTrain.setMotorsToCoast();
    
-    navx = new AHRS(SPI.Port.kMXP, (byte)200);
+    //navx = new AHRS(SPI.Port.kMXP, (byte)100);  // whc 03Mar20 - do we really want the update rate this high?
 
     //create a path chooser
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
@@ -104,7 +113,9 @@ public class Robot extends TimedRobot
     
     SmartDashboard.putBoolean("Use default autonomous?", false);
 
-    navx.reset();
+    //navx.reset();
+
+    auton.driveT1.reset();
   
   }
 
@@ -147,7 +158,7 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit() 
   {
-    dataCollection.dataCollectionInit(dataArrayList);
+    dataCollection.dataCollectionInit(dataArrayList); // whc 03Mar20 - this dataCollection was already initialized on line 93
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
@@ -159,17 +170,22 @@ public class Robot extends TimedRobot
   public void autonomousPeriodic() 
   {
 
+    autonPaths.pathOne();
+    auton.monitorEncoderPosition();
+
     if(xboxDrv.getBumper(Hand.kLeft))
     {
       driveTrain.shiftToHighGear();
     }
-
     if(xboxDrv.getBumper(Hand.kRight))
     {
       driveTrain.shiftToLowGear();
     }
-
-
+    SmartDashboard.putNumber("Drive Back Timer", autonPaths.driveBackTimer.get());
+    SmartDashboard.putNumber("Shooter Timer", autonPaths.shooterTimer.get());
+    SmartDashboard.putBoolean("Spun Up", autonPaths.spunUp);
+    SmartDashboard.putBoolean("Done Shooting", autonPaths.doneShooting);
+    SmartDashboard.putBoolean("Done", autonPaths.done);
   }
 
   @Override
@@ -188,16 +204,16 @@ public class Robot extends TimedRobot
   @Override
   public void teleopPeriodic()
   {
-
-    SmartDashboard.putNumber("Angle", navx.getAngle());
+    //SmartDashboard.putNumber("Angle", navx.getAngle());
 
     if (xboxDrv.getYButton())
     {
-      navx.reset();
+      //navx.reset();
     }
 
     //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    driveTrain.monitorAngle();
+    auton.monitorEncoderPosition();
+    auton.monitorTimer();
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -211,7 +227,7 @@ public class Robot extends TimedRobot
 
     if(xboxDrv.getAButton())
     {
-      driveTrain.setTargetVelocity(12000);
+      //driveTrain.setDistanceGoal(103.5);
     }  
     
     if(xboxDrv.getBButton())
@@ -221,17 +237,19 @@ public class Robot extends TimedRobot
 
     if(xboxDrv.getXButton())
     {
-      //driveTrain.setDistanceGoal(240);
+
+      auton.resetTotalTime();
+      auton.setDistanceGoal(-103.5, 10000);
       //driveTrain.radialTurn(6.25, 90, 90);
       
-      driveTrain.setAngleGoal(90, 16000, 8000);
+      //driveTrain.setAngleGoal(90, 16000, 8000);
 
     }
 
     if(xboxDrv.getTriggerAxis(Hand.kLeft) == 1)
     {
 
-      driveTrain.setMotorsToBrake();
+      driveTrain.setMotorsToCoast();
 
     }
 
@@ -240,7 +258,7 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit() 
   {
-    driveTrain.setMotorsToCoast();
+    //driveTrain.setMotorsToBrake();
     dataCollection.stopDataCollection();
     
    /* for (int i = 0; i <dataArrayList.size();i++)
