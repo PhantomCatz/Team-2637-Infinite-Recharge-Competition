@@ -15,7 +15,7 @@ public class CatzAutonomous
     public static boolean checkBoxR;
 
     public final double STOP_THRESHOLD_ANGLE = 2;
-    public final double SLOW_THRESHOLD_ANGLE = 50;
+    public final double SLOW_THRESHOLD_ANGLE = 20;
 
     public boolean runningRadialTurn = false;
     public double angleGoal;
@@ -34,12 +34,13 @@ public class CatzAutonomous
     public Timer turnT;
     public Timer driveT1;
     public Timer driveTWait;
+    public Timer shooterTimer;
 
     public final double WAIT_TIME_THRESHOLD = 5.0;
     public double totalTime = 0;
 
-    public int lVelocity;
-    public int rVelocity;
+    public double lVelocity;
+    public double rVelocity;
 
     public double leftInitialEncoderPos;
     public double rightInitialEncoderPos;
@@ -66,6 +67,7 @@ public class CatzAutonomous
         turnT = new Timer();
         driveT1 = new Timer();
         driveTWait = new Timer();
+        shooterTimer = new Timer();
     }
 
 
@@ -96,9 +98,26 @@ public class CatzAutonomous
             //drive past starting line and stop
         }
     }
+
     public void resetTotalTime()
     {
         totalTime = 0;
+    }
+
+    public boolean simulateShoot()
+    {
+
+        boolean status = false;
+
+        if(shooterTimer.get() > 3)
+        {
+
+            status = true;
+
+        }
+
+        return status;
+
     }
 
     public void monitorTimer()
@@ -112,8 +131,10 @@ public class CatzAutonomous
         }
     }
 
-    public void monitorEncoderPosition()
+    public boolean monitorEncoderPosition()
     {
+        boolean status = false;
+
         if (runningDistanceDrive == true)
         {
             currentEncPosition = CatzDriveTrain.getIntegratedEncPosition("LT");
@@ -132,23 +153,22 @@ public class CatzAutonomous
             SmartDashboard.putNumber("Distance To Goal", distanceToGoal);
 
             SmartDashboard.putNumber("total time", totalTime);
-            if ((distanceToGoal) < STOP_THRESHOLD_DIST)
+            if (distanceToGoal < STOP_THRESHOLD_DIST)
             {
                 CatzDriveTrain.setTargetVelocity(0);
-                driveT1.stop();
-                driveTWait.reset();
-                driveTWait.start();
-                totalTime += driveT1.get();
                 runningDistanceDrive = false;
-                monitoringTime = true;
+                status = true;
             }
-            else if ((distanceToGoal) < SLOW_THRESHOLD_DIST && (distanceToGoal) < (distanceGoal*0.5))
+            else if (distanceToGoal < SLOW_THRESHOLD_DIST && distanceToGoal < distanceGoal*0.5)
             {
                 //System.out.println("Starting slow: " + (getIntegratedEncVelocity("LT")*0.95));
                 CatzDriveTrain.setTargetVelocity(CatzDriveTrain.getIntegratedEncVelocity("LT")*0.98);
                 
             }
+
         }
+
+        return status;
     }
 
     public void setDistanceGoal(double inches, int speed)
@@ -174,88 +194,81 @@ public class CatzAutonomous
         }
     }
 
-    public void monitorAngle()
+    public boolean monitorAngle()
     {
+        boolean status = false;
         if (runningRadialTurn == true)
         {
-            //double currentAngle = Robot.navx.getAngle();
-/*            SmartDashboard.putNumber("Current Angle", currentAngle);
+            double currentAngle = Math.abs(Robot.navx.getAngle());
+            SmartDashboard.putNumber("Current Angle", currentAngle);
             SmartDashboard.putNumber("turn Time", turnT.get());
 
             angleToTurn = angleGoal - currentAngle;
-*/
-            if (angleToTurn < SLOW_THRESHOLD_ANGLE)
-            {
-                CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, lVelocity*0.99);
-                CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rVelocity*0.99);
-            }
-            else if(angleToTurn < STOP_THRESHOLD_ANGLE)
+
+            SmartDashboard.putNumber("Angle to Turn", angleToTurn);
+            SmartDashboard.putNumber("Angle to Turn Plot", angleToTurn);
+            SmartDashboard.putNumber("Angle Goal", angleGoal);
+
+            SmartDashboard.putNumber("left enc velocity", CatzDriveTrain.getIntegratedEncVelocity("LT"));
+
+            if(angleToTurn < STOP_THRESHOLD_ANGLE)
             {
                 CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, 0);
                 CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, 0);  
                 turnT.stop();
-
+                status = true;
                 runningRadialTurn = false;
             }
+           else if (angleToTurn < SLOW_THRESHOLD_ANGLE && angleToTurn < (angleGoal * 0.5))
+            {
+
+                lVelocity = CatzDriveTrain.getIntegratedEncVelocity("LT");
+                rVelocity = CatzDriveTrain.getIntegratedEncVelocity("RT");
+
+                if(lVelocity > 5000 && rVelocity > 5000)
+                {
+                    CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, CatzDriveTrain.getIntegratedEncVelocity("LT")*0.99);
+                    CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, CatzDriveTrain.getIntegratedEncVelocity("RT")*0.99);
+                }
+
+            }
+
         }
+
+        return status;
+
     }
 
-    public void setAngleGoal(double angle, int leftVelocity, int rightVelocity)
+    public void setAngleGoal(double angle, int speed, double ratio)
     {
         if(!runningRadialTurn)
         {
-            lVelocity= leftVelocity;
-            rVelocity = rightVelocity;
+
 
             angleGoal = angle;
             runningRadialTurn = true;
             Robot.navx.reset();
             turnT.start();
 
-            CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, leftVelocity);
-            CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rightVelocity);
+            if(angle < 0)
+            {
 
-            CatzDriveTrain.drvTrainMtrCtrlLTBack.follow(CatzDriveTrain.drvTrainMtrCtrlLTFrnt);
-            CatzDriveTrain.drvTrainMtrCtrlRTBack.follow(CatzDriveTrain.drvTrainMtrCtrlRTFrnt);
+            
+                CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, speed * ratio);
+                CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -speed);
+
+            }
+            else
+            {
+
+                CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, speed);
+                CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -speed * ratio);
+
+            }
+
 
             
         }
-    }
-
-    public void setVelocityTurn(double leftVelocity, double rightVelocity)
-    {
-        if(Robot.navx.getAngle() < 90)
-        {
-            CatzDriveTrain.drvTrainMtrCtrlLTFrnt.set(TalonFXControlMode.Velocity, leftVelocity);
-            CatzDriveTrain.drvTrainMtrCtrlRTFrnt.set(TalonFXControlMode.Velocity, -rightVelocity);
-
-            CatzDriveTrain.drvTrainMtrCtrlLTBack.follow(CatzDriveTrain.drvTrainMtrCtrlLTFrnt);
-            CatzDriveTrain.drvTrainMtrCtrlRTBack.follow(CatzDriveTrain.drvTrainMtrCtrlRTFrnt);
-            turnT.reset();
-            turnT.start();
-        }
-        double deltaTime = 0;
-        double startTime = turnT.get();
-        while(Robot.navx.getAngle() < 90) 
-        {
-
-            deltaTime = turnT.get() - startTime;
-            SmartDashboard.putNumber("deltaTime", deltaTime);
-
-            SmartDashboard.getNumber("navx angle", Robot.navx.getAngle());
-
-            if (Robot.navx.getAngle() >= SLOW_THRESHOLD_ANGLE)
-            {
-                
-                CatzDriveTrain.setTargetVelocity(CatzDriveTrain.getIntegratedEncVelocity("LT")*0.98);
-                
-            } 
-
-        }
-
-        CatzDriveTrain.setTargetVelocity(0);
-
-        
     }
 
     public void radialTurn(double radiusOfCurvature, double turnRateDegrees, double targetAngleDegrees)

@@ -79,10 +79,10 @@ public class Robot extends TimedRobot
     auton      = new CatzAutonomous();
     autonPaths = new CatzAutonomousPaths();
     driveTrain = new CatzDriveTrain();
-    indexer    = new CatzIndexer();
+    /*indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber(); 
+    climber    = new CatzClimber();*/ 
     
     pdp        = new PowerDistributionPanel();
 
@@ -100,7 +100,7 @@ public class Robot extends TimedRobot
 
     driveTrain.setMotorsToCoast();
    
-    //navx = new AHRS(SPI.Port.kMXP, (byte)100);  // whc 03Mar20 - do we really want the update rate this high?
+    navx = new AHRS(SPI.Port.kMXP, (byte)200);  // whc 03Mar20 - do we really want the update rate this high?
 
     //create a path chooser
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
@@ -113,7 +113,7 @@ public class Robot extends TimedRobot
     
     SmartDashboard.putBoolean("Use default autonomous?", false);
 
-    //navx.reset();
+    navx.reset();
 
     auton.driveT1.reset();
   
@@ -170,50 +170,40 @@ public class Robot extends TimedRobot
   public void autonomousPeriodic() 
   {
 
-    autonPaths.pathOne();
-    auton.monitorEncoderPosition();
+    autonPaths.monitorAutoStateP2();
 
-    if(xboxDrv.getBumper(Hand.kLeft))
-    {
-      driveTrain.shiftToHighGear();
-    }
-    if(xboxDrv.getBumper(Hand.kRight))
-    {
-      driveTrain.shiftToLowGear();
-    }
     SmartDashboard.putNumber("Drive Back Timer", autonPaths.driveBackTimer.get());
     SmartDashboard.putNumber("Shooter Timer", autonPaths.shooterTimer.get());
     SmartDashboard.putBoolean("Spun Up", autonPaths.spunUp);
     SmartDashboard.putBoolean("Done Shooting", autonPaths.doneShooting);
     SmartDashboard.putBoolean("Done", autonPaths.done);
+
   }
 
   @Override
   public void teleopInit() 
   {
-    //driveTrain.instantiateDifferentialDrive();
-    driveTrain.setDriveTrainPIDConfiguration();
+
+    driveTrain.instantiateDifferentialDrive();
+    //driveTrain.setDriveTrainPIDConfiguration();
 
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
+
   }
 
   @Override
   public void teleopPeriodic()
   {
+
     //SmartDashboard.putNumber("Angle", navx.getAngle());
 
-    if (xboxDrv.getYButton())
-    {
-      //navx.reset();
-    }
-
-    //driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-    auton.monitorEncoderPosition();
-    auton.monitorTimer();
+    driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
+    //auton.monitorEncoderPosition();
+    //auton.monitorTimer();
 
     if(xboxDrv.getBumper(Hand.kLeft))
     {
@@ -258,6 +248,7 @@ public class Robot extends TimedRobot
   @Override
   public void disabledInit() 
   {
+
     //driveTrain.setMotorsToBrake();
     dataCollection.stopDataCollection();
     
@@ -273,6 +264,7 @@ public class Robot extends TimedRobot
     {
       e.printStackTrace();
     } 
+    
   }
 
 }

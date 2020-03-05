@@ -24,52 +24,134 @@ public class CatzAutonomousPaths
     public final int DRIVE_DIST_LOW_SPEED  = 7500;
     public final int TURN_SPEED            = 12000;
 
+    public boolean goalMet;
+
+    public enum AUTO_STATE
+    {
+        AS_INIT,
+        AS_DRIVETO, 
+        AS_SHOOT, 
+        AS_DRIVEBACK,
+        AS_TURN, 
+        AS_DONE;
+    }
+
+    public AUTO_STATE autoState =  AUTO_STATE.AS_INIT;
+
     public CatzAutonomousPaths()
     {
 
         driveBackTimer = new Timer();
         shooterTimer = new Timer();
+        System.out.println("AS_INIT: " + autoState.ordinal());
 
     }
 
-    public void pathOne()
+    public void monitorAutoStateP1()
     {
 
-        driveBackTimer.start();
-        shooterTimer.start();
-        auton.setDistanceGoal(-103.5, DRIVE_DIST_MED_SPEED);
-
-        if(shooterTimer.get() > 2.7)
+        SmartDashboard.putNumber("Autonomous State", autoState.ordinal());
+        switch (autoState)
         {
+            case AS_INIT:
+                auton.setDistanceGoal(-103.5, 10000);
+                autoState = AUTO_STATE.AS_DRIVETO;
+                break;
 
-            spunUp = true;
+            case AS_DRIVETO:
+                goalMet = auton.monitorEncoderPosition();
 
-        }
+                if(goalMet)
+                {
 
-        if(shooterTimer.get() > 7.7)
-        {
+                    auton.shooterTimer.reset();
+                    auton.shooterTimer.start();
+                    autoState =  AUTO_STATE.AS_SHOOT;
+                        
+                }
+                break;
 
-            doneShooting = true;
-            auton.setDistanceGoal(120, DRIVE_DIST_HIGH_SPEED);
-            shooterTimer.stop();
-            done = true;
-            driveBackTimer.stop();
+            case AS_SHOOT:
+                if(auton.simulateShoot())
+                {
 
-        }
+                    auton.setDistanceGoal(120, 16000);
+                    autoState = AUTO_STATE.AS_DRIVEBACK;
+                }
+                break;
+            
+            case AS_DRIVEBACK:
+                goalMet = auton.monitorEncoderPosition();
+                
+                if(goalMet)
+                {
 
-        if(driveBackTimer.get() > 13 && !done)
-        {
+                    autoState = AUTO_STATE.AS_DONE;
 
-            auton.setDistanceGoal(120, DRIVE_DIST_HIGH_SPEED);
-            done = true;
-            driveBackTimer.stop();
+                }
+                break;
 
-        }
-        
-
+            case AS_DONE:
+                System.out.println("Done");
+                break;
+        }  
 
     }
 
+    public void monitorAutoStateP2()
+    {
 
+        SmartDashboard.putNumber("Autonomous State", autoState.ordinal());
+
+        switch(autoState)
+        {
+
+            case AS_INIT:
+                auton.setAngleGoal(45, 16000, 0.5);
+                autoState = AUTO_STATE.AS_TURN;
+                break;
+            
+            case AS_TURN:
+                goalMet = auton.monitorAngle();
+
+                if(goalMet)
+                {
+
+                    auton.shooterTimer.reset();
+                    auton.shooterTimer.start();
+                    autoState = AUTO_STATE.AS_SHOOT;
+
+                }
+                break;
+
+            case AS_SHOOT:
+                goalMet = auton.simulateShoot();
+                
+                if(goalMet)
+                {
+
+                    auton.setDistanceGoal(-120, 16000);
+                    autoState = AUTO_STATE.AS_DRIVEBACK;
+
+                }
+                break;
+            
+            case AS_DRIVEBACK:
+                goalMet = auton.monitorEncoderPosition();
+                    
+                if(goalMet)
+                {
+
+                    autoState = AUTO_STATE.AS_DONE;
+
+                }
+                break;
+            
+            case AS_DONE:
+                System.out.println("Done");
+                break;
+        }
+
+    }
 
 }

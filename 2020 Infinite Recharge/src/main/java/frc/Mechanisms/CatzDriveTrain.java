@@ -110,10 +110,10 @@ public class CatzDriveTrain
         drvTrainMtrCtrlRTBack.follow(drvTrainMtrCtrlRTFrnt);
 
         // Set MC's in brake mode
-        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Coast);
-        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Coast);
+        drvTrainMtrCtrlLTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlLTBack.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTFrnt.setNeutralMode(NeutralMode.Brake);
+        drvTrainMtrCtrlRTBack.setNeutralMode(NeutralMode.Brake);
 
         drvTrainLT = new SpeedControllerGroup(drvTrainMtrCtrlLTFrnt, drvTrainMtrCtrlLTBack);
         drvTrainRT = new SpeedControllerGroup(drvTrainMtrCtrlRTFrnt, drvTrainMtrCtrlRTBack);
