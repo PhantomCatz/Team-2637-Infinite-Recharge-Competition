@@ -17,8 +17,8 @@ public class CatzIndexer
     private final int BALL_SENSOR_OUTPUT_DIO_PORT      = 6;
 
     private final double BELT_SPEED_LOAD         = 0.4;
-    private final double BELT_SPEED_SHOOT        = 0.5;
-    private final double BALL_IN_RANGE_THRESHOLD = 5.5;     //If Ultrasonic detects ball below this range (inches), motor is turned on
+    private final double BELT_SPEED_SHOOT        = 0.9;
+    private final double BALL_IN_RANGE_THRESHOLD = 5.75;     //If Ultrasonic detects ball below this range (inches), motor is turned on
     public        double sensorRange             = 0.0;    //Ultrasonic output value
 
     public DigitalInput indexerEntranceSwitch;
@@ -40,13 +40,15 @@ public class CatzIndexer
 
     //Ball Management
     public final int MAX_NUM_BALLS = 5;     //if this value is reached, indexer is deactivated.
-    public int ballCount = 0;   
+    public       int ballCount     = 0;   
 
     public boolean transferingBallToIndexer = false;    //true when motor is active (moving ball from intexer into indexer)
 
-    private boolean shooterRunning     = false;
-    private boolean reachedMaxCapacity = false;
-    private boolean testMode           = false;
+    private boolean shooterRunning          = false;
+    private boolean reachedMaxCapacity      = false;
+    private boolean reverseIndexerState     = false;
+    private boolean prevReverseIndexerState = false;
+    private boolean testMode                = false;
 
     private Thread indexerThread;
 
@@ -83,48 +85,61 @@ public class CatzIndexer
                 }
                 else 
                 {
-                    if(indexerExitSwitchState == BALL_PRESENT)
+                    if(reverseIndexerState == true)
                     {
-                        reachedMaxCapacity = true;  //marks indexer as "full"
-                        indexerMtrCtrl.set(0.0);
+                        prevReverseIndexerState = true;
+                        indexerMtrCtrl.set(-BELT_SPEED_LOAD);
                     }
-                    else  
-                    {   
-                        sensorRange = getUltraSonicSensorReading();
-
-                        if(sensorRange < BALL_IN_RANGE_THRESHOLD)
-                        { 
-                            transferingBallToIndexer = true;
-                            indexerMtrCtrl.set(BELT_SPEED_LOAD);
-                            //System.out.println("INDEXER ON");
-
-                        }
-                        else 
+                    else 
+                    {
+                        if(prevReverseIndexerState == true)
                         {
-                            if(transferingBallToIndexer == true)
+                            prevReverseIndexerState = false;
+                            indexerMtrCtrl.set(0.0);
+                        }
+                        if(indexerExitSwitchState == BALL_PRESENT)
+                        {
+                            reachedMaxCapacity = true;  //marks indexer as "full"
+                            indexerMtrCtrl.set(0.0);
+                        }
+                        else  
+                        {   
+                            sensorRange = getUltraSonicSensorReading();
+
+                            if(sensorRange < BALL_IN_RANGE_THRESHOLD)
+                            { 
+                                transferingBallToIndexer = true;
+                                indexerMtrCtrl.set(BELT_SPEED_LOAD);
+                                //System.out.println("INDEXER ON");
+
+                            }
+                            else 
                             {
-                                if(indexerEntranceSwitchState == BALL_PRESENT)
+                                if(transferingBallToIndexer == true)
                                 {
-                                    indexerStop();
-                                    transferingBallToIndexer = false;
-                                    //System.out.println("INDEXER OFF");
-                                    ballCount++;
-                                    if(ballCount >= MAX_NUM_BALLS)  //checks if 5 balls in indexer
+                                    if(indexerEntranceSwitchState == BALL_PRESENT)
                                     {
-                                        //System.out.println("5 balls");
-                                        reachedMaxCapacity = true;
+                                        indexerStop();
+                                        transferingBallToIndexer = false;
+                                        //System.out.println("INDEXER OFF");
+                                        ballCount++;
+                                        if(ballCount >= MAX_NUM_BALLS)  //checks if 5 balls in indexer
+                                        {
+                                            //System.out.println("5 balls");
+                                            reachedMaxCapacity = true;
+                                        }
                                     }
                                 }
                             }
-                        }
-                    }           
-                } 
+                        }           
+                    } 
+                }
+                
             }
-        });
-            
+        });      
         indexerThread.start(); //repeats thread
     }   // end of startIndexerThread()
-
+    
     public void stopIndexerThread()
     {
         indexerThread.interrupt();
@@ -133,6 +148,11 @@ public class CatzIndexer
     public void resetData()
     {
         ballCount = 0;
+    }
+
+    public void setManualOverride(boolean overrideState)
+    {
+        reverseIndexerState = overrideState;
     }
 
     public void setShooterIsRunning(boolean isRunning)
@@ -144,7 +164,6 @@ public class CatzIndexer
     {
         return ballCount;
     }
-
     public boolean reachedMaxCapacity()
     {
         return reachedMaxCapacity;
@@ -176,7 +195,6 @@ public class CatzIndexer
             indexerMtrCtrl.set(BELT_SPEED_SHOOT);
         }
     }
-
     public void indexerStop()
     {
         if(testMode == false)
@@ -184,16 +202,23 @@ public class CatzIndexer
             indexerMtrCtrl.set(0.0);
         }
     }
-
-    public void indexerReversed()
+    public void indexerReversedOn()
     {   
-        indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+        //indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+        reverseIndexerState = true;
+    }
+
+    public void indexerReversedOff()
+    {
+        reverseIndexerState = false;
     }
 
     public void clearSwitchState()
     { 
         indexerEntranceSwitchState = BALL_PRESENT; 
-        indexerExitSwitchState     = BALL_PRESENT;  
+        indexerExitSwitchState     = BALL_PRESENT;
+        
+        transferingBallToIndexer = false;
     }
 
     public void debugSmartDashboard()

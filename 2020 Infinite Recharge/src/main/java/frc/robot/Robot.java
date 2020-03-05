@@ -4,7 +4,6 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
 import java.util.ArrayList;
@@ -48,8 +47,8 @@ public class Robot extends TimedRobot
   public DataCollection dataCollection;
 
   // Xbox Controllers
-  private        XboxController xboxDrv;
-  public static  XboxController xboxAux;
+  private static XboxController xboxDrv;
+  public  static XboxController xboxAux;
 
   private final int XBOX_DRV_PORT = 0;
   private final int XBOX_AUX_PORT = 1;
@@ -76,7 +75,6 @@ public class Robot extends TimedRobot
   private final int DPAD_LT = 270;
   private final int DPAD_RT = 90;
 
-  
   // Camera Settings
   private UsbCamera camera;
 
@@ -128,7 +126,6 @@ public class Robot extends TimedRobot
     indexer.startIndexerThread();
     shooter.setShooterVelocity();
     //climber.climbControl();
-    
   }
 
   @Override
@@ -173,7 +170,7 @@ public class Robot extends TimedRobot
     shooter.debugSmartDashboard();
     shooter.smartdashboard();
 
-    
+    SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
     }
 
   @Override
@@ -186,11 +183,14 @@ public class Robot extends TimedRobot
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
+
+    shooter.autonomousOn();
   }
 
   @Override
   public void autonomousPeriodic() 
   {
+    
   }
 
   @Override
@@ -205,25 +205,26 @@ public class Robot extends TimedRobot
     dataCollection.startDataCollection();
 
     indexer.clearSwitchState();
+
+    shooter.autonomousOff();
   }
 
   @Override
   public void teleopPeriodic()
   {
-  //-------------------------------------------Drivetrain------------------------------------------------------------- 
+    //-------------------------------------------Drivetrain------------------------------------------------------------- 
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-
   
     if(xboxDrv.getBumper(Hand.kLeft))
     {
       driveTrain.shiftToHighGear();
     }
-
-    if(xboxDrv.getBumper(Hand.kRight))
+    else if(xboxDrv.getBumper(Hand.kRight))
     {
       driveTrain.shiftToLowGear();
     }
-//-----------------------------------------------INTAKE---------------------------------------------------
+
+    //-----------------------------------------------INTAKE---------------------------------------------------
     if(xboxDrv.getStickButton(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
     {
       intake.deployIntake();
@@ -236,10 +237,10 @@ public class Robot extends TimedRobot
     {
       intake.applyBallCompression();
     } 
-    else
+    /*else
     {
       intake.stopDeploying();
-    }
+    }*/
 
     if(xboxDrv.getTriggerAxis(Hand.kLeft) > 0.2)
     {
@@ -255,82 +256,95 @@ public class Robot extends TimedRobot
     }
 
     //--------------------------------------------SHOOTER-------------------------------------------------
-
     if(xboxAux.getPOV() == DPAD_UP)
     {
       shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_LO);
       //shooter.setTargetVelocity(.25);
     }
-
-    if(xboxAux.getPOV() == DPAD_LT)
+    else if(xboxAux.getPOV() == DPAD_LT)
     {
      shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_MD);
     }
-
-    if(xboxAux.getPOV() == DPAD_DN)
+    else if(xboxAux.getPOV() == DPAD_DN)
     {
       shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_HI);
     }
-   
-   if(xboxAux.getBButton())
-   {
+    else if(xboxAux.getBButton())
+    {
       indexer.setShooterIsRunning(true);
       shooter.shoot();
-   }
-
-   if(xboxAux.getStartButton())
-   {
-    shooter.shooterOff();
-   }
+    } 
+    else if(xboxAux.getStartButton())
+    {
+      shooter.shooterOff();
+    }
 
    //----------------------------------------------INDEXER----------------------------------------
-   
    if(xboxAux.getBackButton())
    {
-    indexer.indexerReversed();
+    indexer.indexerReversedOn();
    } 
-//--------------------------------------------------CLIMB----------------------------------------------
-   /*if(xboxAux.getYButton())
+   else
    {
-     climber.runWinch();
+     indexer.indexerReversedOff();
+   }
+
+  //--------------------------------------------------CLIMB----------------------------------------------
+   if(xboxAux.getYButton())
+   {
+     climber.climbRunWinch();
+   }
+   else
+   {
+     climber.climbStopWinch();
+   }
+
+   if(xboxAux.getAButton())
+   {
+     climber.lightsaberExtend2();
    }
 
    if(xboxAux.getY(Hand.kLeft )> 0.2)
    {  
-      climber.extendLightsaber();
+      climber.lightsaberExtend();
    }
-
-   if(xboxAux.getY(Hand.kLeft)< -0.2)
+    else if(xboxAux.getY(Hand.kLeft)< -0.2)
    {
-      climber.retractLightsaber();
-   }*/
-
-   if(xboxDrv.getBButton())
-   {
-     climber.lightsaberExtend();
-   }
-   else if(xboxDrv.getXButton())
-   {
-     climber.lightsaberRetract();;
+      climber.lightsaberRetract();
    }
    else
    {
-     climber.lightsaberOff();
+      climber.lightsaberOff();
    }
 
-//ONLY TESTING 
-   if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
+  //--------------------------------------------------TESTING----------------------------------------------
+   /*if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
    {
      shooter.logTestData = true;
    }
    if(xboxAux.getBButton())
    {
      shooter.logTestData = false;
-   }
-  
+   }*/
+  }
 
-  
+  public void testPeriodic() 
+  {
+    if(xboxAux.getAButton() && xboxDrv.getAButton())
+    {
+      climber.climbRunWinch();
+    }
 
+    else if(xboxAux.getBButton() && xboxDrv.getBButton())
+    {
+      climber.climbReverse();
+    }
+
+    else
+    {
+      climber.climbStopWinch();
+    }
+    
   }
   
   @Override

@@ -36,26 +36,26 @@ public class CatzShooter
     public static final int SHOOTER_STATE_START_SHOOTING      = 4;
     public static final int SHOOTER_STATE_WAIT_FOR_SHOOT_DONE = 5;
     
-    public final double SHOOTER_RPM_START_OFFSET =  500.0;
-    public final double SHOOTER_TARGET_RPM_LO    = 4000.0;
-    public final double SHOOTER_TARGET_RPM_MD    = 4500.0;
-    public final double SHOOTER_TARGET_RPM_HI    = 5500.0;
+    public final double SHOOTER_RPM_START_OFFSET =  250.0;
+    public final double SHOOTER_TARGET_RPM_LO    = (4500.0 - SHOOTER_RPM_START_OFFSET);;
+    public final double SHOOTER_TARGET_RPM_MD    = (5000.0 - SHOOTER_RPM_START_OFFSET);
+    public final double SHOOTER_TARGET_RPM_HI    = (6000.0 - SHOOTER_RPM_START_OFFSET);
 
     final double SHOOTER_BANG_BANG_MAX_RPM_OFFSET = 5.0; 
     final double SHOOTER_BANG_BANG_MIN_RPM_OFFSET = 5.0;
 
-    final double SHOOTER_RAMP_RPM_OFFSET = 100.0;
+    final double SHOOTER_RAMP_RPM_OFFSET = 200.0;
 
-    final double SHOOTER_OFF_POWER   = 0.0;
+    final double SHOOTER_OFF_POWER   =  0.0;
     final double SHOOTER_RAMP_POWER  = -1.0;
     final double SHOOTER_SHOOT_POWER = -1.0;
 
     final int NUM_OF_DATA_SAMPLES_TO_AVERAGE = 5;
 
-    final double SHOOTER_THREAD_PERIOD     = 0.040;
-    final double SHOOTER_RAMP_TIMEOUT_SEC        = 6.0;
-    final double INDEXER_SHOOT_TIME_SEC          = 1.75;
-    final double SHOOTER_AVG_VEL_SAMPLE_TIME_SEC = 0.1;
+    final double SHOOTER_THREAD_PERIOD           = 0.040;
+    final double SHOOTER_RAMP_TIMEOUT_SEC        = 4.000;
+    final double INDEXER_SHOOT_TIME_SEC          = 1.750;
+    final double SHOOTER_AVG_VEL_SAMPLE_TIME_SEC = 0.100;
 
     public double targetRPM          = 0.0;
     public double targetRPMThreshold = 0.0;
@@ -78,6 +78,8 @@ public class CatzShooter
 
     private boolean shooterIsReady = false;
     double avgVelocity             = 0.0;
+
+    public boolean inAutonomous;
 
     public CatzShooter() //constructor
     {   
@@ -132,7 +134,6 @@ public class CatzShooter
     {
         return shtrMtrCtrlA.getSensorCollection().getQuadraturePosition();
     }
-
     public double getFlywheelShaftVelocity() //RPM
     {
         return (Math.abs((double) shtrMtrCtrlA.getSensorCollection().getQuadratureVelocity()) * CONV_QUAD_VELOCITY_TO_RPM); 
@@ -154,9 +155,10 @@ public class CatzShooter
 
     public void shooterOff() // turns shooter off , sets the shooter state to off
     {
-        targetRPM    = 0.0;
-        shooterState = SHOOTER_STATE_OFF;
-        shooterPower = SHOOTER_OFF_POWER;
+        targetRPM      = 0.0;
+        shooterIsReady = false;
+        shooterState   = SHOOTER_STATE_OFF;
+        shooterPower   = SHOOTER_OFF_POWER;
         shtrMtrCtrlA.set(shooterPower);
         Robot.indexer.setShooterIsRunning(false);
         Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
@@ -202,13 +204,12 @@ public class CatzShooter
 
                         if(targetRPM > 0.0)
                         {
-                            indexerShootStateCount = 0;
-                            rampStateCount         = 0;
-                            samplingVelocityCount  = 0;
+                            indexerShootStateCount  = 0;
+                            rampStateCount          = 0;
+                            samplingVelocityCount   = 0;
                             sumOfVelocityData       = 0.0;
                             velocityDataIndex       = 0;
                             readyToCalculateAverage = false;
-                            shooterIsReady          = false;
                             shooterState            = SHOOTER_STATE_RAMPING;
                             targetRPMThreshold      = targetRPM - SHOOTER_RAMP_RPM_OFFSET;
                             minRPM                  = targetRPM - SHOOTER_BANG_BANG_MIN_RPM_OFFSET;
@@ -252,7 +253,7 @@ public class CatzShooter
                         {
                             samplingVelocityCount = 0;
                             velocityData[velocityDataIndex++ ] = flywheelShaftVelocity;
-                            System.out.println("Sample " + flywheelShaftVelocity);
+                            System.out.print("S");
 
                             if(velocityDataIndex == NUM_OF_DATA_SAMPLES_TO_AVERAGE)
                             {
@@ -279,8 +280,6 @@ public class CatzShooter
                             }
                         }
 
-                    
-
                         bangBang(minRPM, maxRPM, flywheelShaftVelocity);
 
                         System.out.println("T3: " + shootTime + " : " + flywheelShaftVelocity + " Power: " + shooterPower);
@@ -292,10 +291,17 @@ public class CatzShooter
 
                         bangBang(minRPM, maxRPM, flywheelShaftVelocity);   
 
-                        if(rumbleSet == false)
+                        if(inAutonomous == true)
                         {
-                            Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 1);
-                            rumbleSet = true;
+                            shooterState = SHOOTER_STATE_START_SHOOTING;
+                        }
+                        else 
+                        {
+                            if(rumbleSet == false)
+                            {
+                                Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 1);
+                                rumbleSet = true;
+                            } 
                         }
                     break;
 
@@ -326,7 +332,6 @@ public class CatzShooter
                     break;
 
                     default:  //default code when there is nothing going on 
-                        System.out.println("DEFAULT STATE");
                         shooterOff();
                     break;
             }        
@@ -346,10 +351,25 @@ public class CatzShooter
     *  power 0.45  4200 rpm
     */
 
+    public void autonomousOn()
+    {
+        inAutonomous = true;
+    }
+
+    public void autonomousOff()
+    {
+        inAutonomous = false;
+    }
+    
+
+    public boolean getShooterReadyState()
+    {
+        return shooterIsReady;
+    }
 
     public void getBangBangPower() //determines max and min power based on the velocity chosen
     {
-       double power =  (targetRPM / 10000.0) - 0.01;    
+       double power =  (targetRPM / 10000.0) + 0.04;    
        minPower = -(power - 0.05);
        maxPower = -(power + 0.05);
         
@@ -383,7 +403,6 @@ public class CatzShooter
             maxPower = -0.90;
             minPower = -0.45;
         } */
-        
     }
 
     public void debugSmartDashboard()

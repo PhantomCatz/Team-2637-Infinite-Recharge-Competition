@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 
-
 public class CatzIntake 
 {
     private final int INTAKE_FIGURE_8_MC_CAN_ID             = 10;
@@ -27,14 +26,14 @@ public class CatzIntake
 
     private final double COMPRESSION_POWER                  = 0.3;
 
-    private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.35;
+    private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.25;
     private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
-    private final double INTAKE_MOTOR_POWER_START_STOW      = -0.5;
-    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.2;
+    private final double INTAKE_MOTOR_POWER_START_STOW      = -0.25;
+    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.25;
 
     final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
-    final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 1.500;
-    final double STOW_REDUCE_POWER_TIME_OUT_SEC             = 1.500;
+    final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 0.400;
+    final double STOW_REDUCE_POWER_TIME_OUT_SEC             = 0.350;
 
     private final int INTAKE_MODE_NULL                      = 0;
     private final int INTAKE_MODE_DEPLOY_START              = 1;
@@ -89,19 +88,16 @@ public class CatzIntake
     }
 
     // ---------------------------------------------ROLLER---------------------------------------------
-
     public void intakeRollerIn()
     {
         intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, -MTR_POWER_FIGURE8);
         intakeRollerMtrCtrl.set(ControlMode.PercentOutput, -MTR_POWER_ROLLER);
     }
-
     public void intakeRollerOut()
     {
         intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, MTR_POWER_FIGURE8);
         intakeRollerMtrCtrl.set(ControlMode.PercentOutput, MTR_POWER_ROLLER);
     }
-
     public void intakeRollerOff()
     {
         intakeFigure8MtrCtrl.set(ControlMode.PercentOutput, 0.0);
@@ -109,7 +105,6 @@ public class CatzIntake
     }
 
     // ---------------------------------------------DEPLOY/STOW---------------------------------------------
-   
     public void intakeControl()
     {
         intakeThread = new Thread(() ->
@@ -119,18 +114,12 @@ public class CatzIntake
             while(true)
             {
                 shootTime = Robot.dataCollectionTimer.get();
-               
                 switch(intakeMode)
                 {
                     case INTAKE_MODE_DEPLOY_START:
+                        intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_DEPLOY);
+                        intakeMode = INTAKE_MODE_DEPLOY_REDUCE_POWER;
 
-                        if(timeCounter < deployPowerCountLimit)
-                        {
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_DEPLOY);
-                            intakeMode = INTAKE_MODE_DEPLOY_REDUCE_POWER;
-
-                            System.out.println("T1: " + shootTime);
-                        }
                         timeCounter++;
                     break;
 
@@ -138,22 +127,16 @@ public class CatzIntake
                         if(timeCounter > deployPowerCountLimit)
                         {
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_DEPLOY);
-                            intakeDeployed = true;
                             intakeMode = INTAKE_MODE_NULL;
-                            System.out.println("T2: " + shootTime);
+                            intakeDeployed = true;
                         }
                         timeCounter++;
                     break;
 
                     case INTAKE_MODE_STOW_START:
-                        if(timeCounter < stowPowerCountLimit)
-                        {
-                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
-                            intakeMode = INTAKE_MODE_STOW_REDUCE_POWER;
+                        intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
+                        intakeMode = INTAKE_MODE_STOW_REDUCE_POWER;
 
-                            System.out.println("T3A: " + shootTime);
-                        }
-                        intakeDeployed = false;
                         timeCounter++;
                     break;
 
@@ -161,9 +144,8 @@ public class CatzIntake
                         if(timeCounter > stowPowerCountLimit)
                         {
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_STOW);
-
-                            System.out.println("T4: " + shootTime);
                             intakeMode = INTAKE_MODE_NULL;
+                            intakeDeployed = false;
                         }
                         timeCounter++;
                     break;
@@ -174,28 +156,21 @@ public class CatzIntake
                 }
                 Timer.delay(INTAKE_THREAD_WAITING_TIME); //put at end
             }   
-        
         });
-    
         intakeThread.start();
-
     }
-
     public void deployIntake()
     {
         timeCounter = 0;
-        //intakeMode = INTAKE_MODE_DEPLOY_START;
-        intakeDeployMtrCtrl.set(0.25);
+        intakeMode = INTAKE_MODE_DEPLOY_START;
+        //intakeDeployMtrCtrl.set(0.25);
     }
-
-
     public void stowIntake()
     {
         timeCounter = 0;
-        //intakeMode = INTAKE_MODE_STOW_START;
-        intakeDeployMtrCtrl.set(-0.25);
+        intakeMode = INTAKE_MODE_STOW_START;
+        //intakeDeployMtrCtrl.set(-0.25);
     }
-
     public void stopDeploying()
     {
         intakeDeployMtrCtrl.set(0);
@@ -206,17 +181,20 @@ public class CatzIntake
         intakeDeployMtrCtrl.set(COMPRESSION_POWER);
         /*if(intakeDeployed == true)
         {
-           
+            intakeDeployMtrCtrl.set(COMPRESSION_POWER);
         }*/
     }
 
-    // ---------------------------------------------Intake Limit Switches---------------------------------------------   
+    public double getDeployMotorPower()
+    {
+        return intakeDeployMtrCtrl.get();
+    }
 
+    // ---------------------------------------------Intake Limit Switches---------------------------------------------   
     public boolean getDeployedLimitSwitchState()
     {
         return intakeDeployedLimitSwitch.get();
     }
-
     public boolean getStowedLimitSwitchState()
     {
         return intakeStowedLimitSwitch.get();

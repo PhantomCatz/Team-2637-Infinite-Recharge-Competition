@@ -1,6 +1,8 @@
 package frc.Autonomous;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 
 public class CatzPathChooser
 {
@@ -18,7 +20,14 @@ public class CatzPathChooser
         //red and blue sides symmetrical, no check box for color required
         if(checkBoxL == true)
         {
-
+            Robot.shooter.setTargetRPM(Robot.shooter.SHOOTER_TARGET_RPM_LO);
+            
+            while(Robot.shooter.getShooterReadyState() == false)
+            {
+                Timer.delay(0.005);
+            }
+            Robot.indexer.setShooterIsRunning(true);
+            Robot.shooter.shoot();
         }
         else if(checkBoxM == true)
         {

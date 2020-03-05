@@ -1,7 +1,5 @@
 package frc.Mechanisms;
 
-
-
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
@@ -14,7 +12,6 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.Robot;
-
 
 public class CatzDriveTrain
 {
@@ -41,8 +38,8 @@ public class CatzDriveTrain
 
     private DoubleSolenoid gearShifter;
 
-    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
-    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
+    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 3;
+    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 4;
 
     /*
     private final double GEAR_RATIO    = 11/44;  TBD - OK TO LEAVE AS COMMENT IF DATA IS CORRECT
