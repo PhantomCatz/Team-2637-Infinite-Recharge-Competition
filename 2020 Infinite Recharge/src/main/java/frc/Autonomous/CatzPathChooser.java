@@ -20,21 +20,20 @@ public class CatzPathChooser
         //red and blue sides symmetrical, no check box for color required
         if(checkBoxL == true)
         {
-            Robot.shooter.setTargetRPM(Robot.shooter.SHOOTER_TARGET_RPM_LO);
-            
-            while(Robot.shooter.getShooterReadyState() == false)
-            {
-                Timer.delay(0.005);
-            }
-            Robot.indexer.setShooterIsRunning(true);
-            Robot.shooter.shoot();
+
+            CatzAutonomousPaths.monitorAutoState("LEFT");
+
         }
         else if(checkBoxM == true)
         {
 
+            CatzAutonomousPaths.monitorAutoState("STRAIGHT");
+
         }
         else if(checkBoxR == true)
         {
+
+            CatzAutonomousPaths.monitorAutoState("RIGHT");
 
         }
         else

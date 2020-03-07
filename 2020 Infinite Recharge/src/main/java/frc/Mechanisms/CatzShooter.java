@@ -37,7 +37,7 @@ public class CatzShooter
     public static final int SHOOTER_STATE_WAIT_FOR_SHOOT_DONE = 5;
     
     public final double SHOOTER_RPM_START_OFFSET =  250.0;
-    public final double SHOOTER_TARGET_RPM_LO    = (4500.0 - SHOOTER_RPM_START_OFFSET);;
+    public final double SHOOTER_TARGET_RPM_LO    = (4700.0 - SHOOTER_RPM_START_OFFSET); //4400
     public final double SHOOTER_TARGET_RPM_MD    = (5000.0 - SHOOTER_RPM_START_OFFSET);
     public final double SHOOTER_TARGET_RPM_HI    = (6000.0 - SHOOTER_RPM_START_OFFSET);
 
@@ -53,8 +53,8 @@ public class CatzShooter
     final int NUM_OF_DATA_SAMPLES_TO_AVERAGE = 5;
 
     final double SHOOTER_THREAD_PERIOD           = 0.040;
-    final double SHOOTER_RAMP_TIMEOUT_SEC        = 4.000;
-    final double INDEXER_SHOOT_TIME_SEC          = 1.750;
+    final double SHOOTER_RAMP_TIMEOUT_SEC        = 4.000;  //TBD-TEST put back to 4.0
+    final double INDEXER_SHOOT_TIME_SEC          = 1.60;
     final double SHOOTER_AVG_VEL_SAMPLE_TIME_SEC = 0.100;
 
     public double targetRPM          = 0.0;
@@ -67,7 +67,7 @@ public class CatzShooter
     
     private Thread shooterThread;
 
-    private int shooterState = SHOOTER_STATE_OFF;
+    public static int shooterState = SHOOTER_STATE_OFF;
 
     private int indexerShootStateCountLimit  = 0;
     private int rampStateCountLimit          = 0;
@@ -117,6 +117,7 @@ public class CatzShooter
         samplingVelocityCountLimit  = (int)Math.round( (SHOOTER_AVG_VEL_SAMPLE_TIME_SEC / SHOOTER_THREAD_PERIOD) + 0.5);
         
         setShooterVelocity();
+        shooterOff();
     }
 
     public void setTargetVelocity(double targetVelocity)  //TBD //not using
@@ -369,7 +370,7 @@ public class CatzShooter
 
     public void getBangBangPower() //determines max and min power based on the velocity chosen
     {
-       double power =  (targetRPM / 10000.0) + 0.04;    
+       double power =  (targetRPM / 10000.0) + 0.04; //+0.05    
        minPower = -(power - 0.05);
        maxPower = -(power + 0.05);
         

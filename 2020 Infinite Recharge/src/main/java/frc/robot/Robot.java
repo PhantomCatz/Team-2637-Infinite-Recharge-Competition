@@ -9,6 +9,7 @@ package frc.robot;
 import java.util.ArrayList;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSink;
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -17,6 +18,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.Autonomous.CatzAutonomousPaths;
 import frc.Autonomous.CatzPathChooser;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
@@ -77,6 +79,9 @@ public class Robot extends TimedRobot
 
   // Camera Settings
   private UsbCamera camera;
+  private UsbCamera camera2;
+
+  private VideoSink server;
 
   private static double cameraResolutionWidth = 320;
   private static double cameraResolutionHeight = 240;
@@ -85,6 +90,9 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
+    xboxDrv = new XboxController(XBOX_DRV_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
@@ -102,8 +110,6 @@ public class Robot extends TimedRobot
     
     dataCollection.dataCollectionInit(dataArrayList);
 
-    xboxDrv = new XboxController(XBOX_DRV_PORT);
-    xboxAux = new XboxController(XBOX_AUX_PORT);
    
     //create a path chooser
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
@@ -117,15 +123,22 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean("Use default autonomous?", false);
   
     // Camera Configuration
-    /*camera = CameraServer.getInstance().startAutomaticCapture();
+    camera = CameraServer.getInstance().startAutomaticCapture(0);
     camera.setFPS(15);
     camera.setResolution(320, 240);
-    camera.setPixelFormat(PixelFormat.kMJPEG);*/
+    camera.setPixelFormat(PixelFormat.kMJPEG);
+
+    camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+    camera2.setFPS(15);
+    camera2.setResolution(320, 240);
+    camera2.setPixelFormat(PixelFormat.kMJPEG);
+
+    server = CameraServer.getInstance().getServer();
 
     intake.intakeControl();
     indexer.startIndexerThread();
     shooter.setShooterVelocity();
-    //climber.climbControl();
+    climber.climbControl();
   }
 
   @Override
@@ -176,7 +189,10 @@ public class Robot extends TimedRobot
   @Override
   public void autonomousInit() 
   {
-    CatzPathChooser.choosePath();
+
+    driveTrain.setDriveTrainPIDConfiguration();
+
+    driveTrain.shiftToHighGear();
 
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
@@ -191,6 +207,8 @@ public class Robot extends TimedRobot
   public void autonomousPeriodic() 
   {
     
+    CatzAutonomousPaths.monitorAutoState("STRAIGHT");
+
   }
 
   @Override
@@ -224,16 +242,25 @@ public class Robot extends TimedRobot
       driveTrain.shiftToLowGear();
     }
 
+    if(xboxDrv.getStartButtonPressed())
+    {
+      server.setSource(camera);
+    }
+    else if(xboxDrv.getBackButtonPressed())
+    {
+      server.setSource(camera2);
+    }
+
     //-----------------------------------------------INTAKE---------------------------------------------------
-    if(xboxDrv.getStickButton(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
+    if(xboxDrv.getStickButtonPressed(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
     {
       intake.deployIntake();
     }
-    else if(xboxDrv.getStickButton(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
+    else if(xboxDrv.getStickButtonPressed(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
     {
       intake.stowIntake();
     }
-    else if(xboxDrv.getAButton() == true)
+    /*else if(xboxDrv.getAButton() == true)
     {
       intake.applyBallCompression();
     } 
@@ -245,6 +272,7 @@ public class Robot extends TimedRobot
     if(xboxDrv.getTriggerAxis(Hand.kLeft) > 0.2)
     {
       intake.intakeRollerIn();
+      intake.applyBallCompression();
     }
     else if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
     {
@@ -301,9 +329,9 @@ public class Robot extends TimedRobot
 
    if(xboxAux.getAButton())
    {
-     climber.lightsaberExtend2();
+     climber.lightsaberAutoExtend();
    }
-
+/*
    if(xboxAux.getY(Hand.kLeft )> 0.2)
    {  
       climber.lightsaberExtend();
@@ -316,6 +344,7 @@ public class Robot extends TimedRobot
    {
       climber.lightsaberOff();
    }
+   */
 
   //--------------------------------------------------TESTING----------------------------------------------
    /*if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose

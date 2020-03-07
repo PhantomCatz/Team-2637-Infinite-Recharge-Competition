@@ -76,10 +76,11 @@ public class CatzDriveTrain
 
 
 
-    public final double PID_P = 0.25;   // original value was 0.05
+    public final double PID_P = 0.05;   // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
-    public final double PID_D = 0;      // original value was 0.1
+    public final double PID_D = 0.1;      // original value was 0.1
     public final double PID_F = 0.02;   // original value was 0.005    0.02 value for target speed 16000
+    public final int PID_IZ = 10;
 
 
 
@@ -136,13 +137,13 @@ public class CatzDriveTrain
          drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
          drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
          drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, 0);
+         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, PID_IZ);
 
          drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
          drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
          drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
          drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
+         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, PID_IZ); 
     }
 
     public void arcadeDrive(double power, double rotation)

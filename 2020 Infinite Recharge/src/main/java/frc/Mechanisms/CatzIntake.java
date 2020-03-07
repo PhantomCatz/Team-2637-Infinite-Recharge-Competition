@@ -29,7 +29,7 @@ public class CatzIntake
     private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.25;
     private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
     private final double INTAKE_MOTOR_POWER_START_STOW      = -0.25;
-    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.25;
+    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.30;
 
     final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
     final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 0.400;

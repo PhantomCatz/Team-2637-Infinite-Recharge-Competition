@@ -8,6 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+
 public class CatzIndexer 
 {
     //Switches and Sensors
@@ -17,8 +18,8 @@ public class CatzIndexer
     private final int BALL_SENSOR_OUTPUT_DIO_PORT      = 6;
 
     private final double BELT_SPEED_LOAD         = 0.4;
-    private final double BELT_SPEED_SHOOT        = 0.9;
-    private final double BALL_IN_RANGE_THRESHOLD = 5.75;     //If Ultrasonic detects ball below this range (inches), motor is turned on
+    private final double BELT_SPEED_SHOOT        = 0.90; //0.6
+    private final double BALL_IN_RANGE_THRESHOLD = 6.0;     //If Ultrasonic detects ball below this range (inches), motor is turned on
     public        double sensorRange             = 0.0;    //Ultrasonic output value
 
     public DigitalInput indexerEntranceSwitch;
@@ -44,6 +45,7 @@ public class CatzIndexer
 
     public boolean transferingBallToIndexer = false;    //true when motor is active (moving ball from intexer into indexer)
 
+    private boolean shooterRamping          = false;
     private boolean shooterRunning          = false;
     private boolean reachedMaxCapacity      = false;
     private boolean reverseIndexerState     = false;
@@ -82,6 +84,19 @@ public class CatzIndexer
                 if(shooterRunning)
                 {
                     ballCount = 0; //this is assuming that when we run the shooter, it will shoot all balls from the indexer
+                    indexerMtrCtrl.set(BELT_SPEED_SHOOT);
+                    //System.out.println("shooter running");
+                }
+                else if(shooterRamping)
+                {
+                    if(indexerEntranceSwitchState == BALL_NOT_PRESENT)
+                    {
+                        indexerMtrCtrl.set(BELT_SPEED_LOAD);
+                    }
+                    else
+                    {
+                        indexerMtrCtrl.set(0.0);
+                    }
                 }
                 else 
                 {
@@ -89,6 +104,7 @@ public class CatzIndexer
                     {
                         prevReverseIndexerState = true;
                         indexerMtrCtrl.set(-BELT_SPEED_LOAD);
+                        //System.out.println("reverse indexer state");
                     }
                     else 
                     {
@@ -96,11 +112,14 @@ public class CatzIndexer
                         {
                             prevReverseIndexerState = false;
                             indexerMtrCtrl.set(0.0);
+                            //System.out.println("prev reverse indexer state");
                         }
+
                         if(indexerExitSwitchState == BALL_PRESENT)
                         {
                             reachedMaxCapacity = true;  //marks indexer as "full"
                             indexerMtrCtrl.set(0.0);
+                            //System.out.println("indexer exit switch");
                         }
                         else  
                         {   
@@ -157,7 +176,13 @@ public class CatzIndexer
 
     public void setShooterIsRunning(boolean isRunning)
     {
+
         this.shooterRunning = isRunning;
+    }
+
+    public void setShooterRamping(boolean isRamping)
+    {
+        shooterRamping = isRamping;
     }
 
     public int getBallCount()
@@ -192,13 +217,15 @@ public class CatzIndexer
     {
         if(testMode == false)
         {
-            indexerMtrCtrl.set(BELT_SPEED_SHOOT);
+            shooterRunning = true;
+            //indexerMtrCtrl.set(BELT_SPEED_SHOOT);
         }
     }
     public void indexerStop()
     {
         if(testMode == false)
         {
+            shooterRunning = false;
             indexerMtrCtrl.set(0.0);
         }
     }
@@ -211,6 +238,7 @@ public class CatzIndexer
     public void indexerReversedOff()
     {
         reverseIndexerState = false;
+        prevReverseIndexerState = false;
     }
 
     public void clearSwitchState()

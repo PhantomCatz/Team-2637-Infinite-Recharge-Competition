@@ -8,6 +8,8 @@ import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
+import frc.robot.Robot;
 
 public class CatzClimber
 {
@@ -27,10 +29,12 @@ public class CatzClimber
     public  final int LIGHTSABER_MC_PDP_PORT = 9; 
 
     private final double CLIMB_MOTOR_POWER_UP     = -0.5;
-    private final double CLIMB_MOTOR_POWER_DOWN   =  0.5;
-    private final double LIGHTSABER_EXT_MOTOR_PWR =  0.4;
-    private final double LIGHTSABER_RET_MOTOR_PWR = -0.4;
+    private final double CLIMB_MOTOR_POWER_DOWN   = 0.5;
+    private final double LIGHTSABER_EXT_MOTOR_PWR =  -0.4;
+    private final double LIGHTSABER_RET_MOTOR_PWR = 0.15;
     private final double LIGHTSABER_OFF_MOTOR_PWR =  0.0;
+
+    private boolean lightSaberAutoState = false;
 
     private final int CLIMB_MC_CURRENT_LIMIT    = 80;
 
@@ -42,6 +46,7 @@ public class CatzClimber
     private final int LIGHTSABER_EXTEND  = 1;
     private final int LIGHTSABER_RETRACT = 2;
     private final int CLIMB_RUN_WINCH    = 3;
+    private final int LIGHTSABER_MANUAL  = 4;
 
     private int climbCount                    = 0;
     private int climbCountLimit               = 0;
@@ -50,7 +55,7 @@ public class CatzClimber
 
     Thread climbThread;
 
-    private int mode = CLIMB_NULL_MODE;
+    private int mode = LIGHTSABER_MANUAL;
 
     public CatzClimber()
     {
@@ -89,7 +94,7 @@ public class CatzClimber
 
     public void climbRunWinch()
     {   
-        mode = CLIMB_RUN_WINCH;
+        //mode = CLIMB_RUN_WINCH;
         climbMtrCtrlA.set(CLIMB_MOTOR_POWER_UP);  
     }
 
@@ -110,19 +115,18 @@ public class CatzClimber
 
     public void lightsaberExtend()
     {
-        //mode = LIGHTSABER_EXTEND;
-        lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR);
+        mode = LIGHTSABER_MANUAL;
     }   
 
-    public void lightsaberExtend2()
+    public void lightsaberAutoExtend()
     {
         mode = LIGHTSABER_EXTEND;
     }  
 
     public void lightsaberRetract()
     {
-        //mode = LIGHTSABER_RETRACT;
-        lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_RET_MOTOR_PWR);
+        mode = LIGHTSABER_RETRACT;
+        //lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_RET_MOTOR_PWR);
     }
     public void lightsaberOff()
     {
@@ -142,18 +146,21 @@ public class CatzClimber
                 switch(mode)
                 {
                     case LIGHTSABER_EXTEND:
+                        System.out.println("C1: " + lightsaberHeightCount + " : " + lightsaberHeightCountLimit  + " : " + lightsaberRunning );
                         if(lightsaberRunning == false)
                         {
                             lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR);
                             lightsaberRunning = true;
+                            System.out.println("C2: " + lightsaberHeightCountLimit );
                         }    
 
                         if(lightsaberHeightCount >= lightsaberHeightCountLimit)
                         {
                             lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_OFF_MOTOR_PWR);
                             lightsaberRunning = false;
-                            mode = CLIMB_NULL_MODE;
                             lightsaberHeightCount = 0;
+                            mode = LIGHTSABER_MANUAL;
+                            System.out.println("C3: " );
                         }
                         else
                         {
@@ -166,6 +173,21 @@ public class CatzClimber
                     break;
 
                     case CLIMB_RUN_WINCH:
+                    break;
+
+                    case LIGHTSABER_MANUAL:
+                        if(Robot.xboxAux.getY(Hand.kLeft) < -0.2) //up on the joystick is negative
+                        {
+                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR);
+                        }
+                        else if(Robot.xboxAux.getY(Hand.kLeft) > 0.2)
+                        {
+                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_RET_MOTOR_PWR);  
+                        }
+                        else
+                        {
+                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_OFF_MOTOR_PWR);
+                        }
                     break;
 
                     default:
