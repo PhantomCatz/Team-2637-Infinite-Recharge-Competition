@@ -23,7 +23,7 @@ public class CatzAutonomousPaths
 
     public static boolean goalMet;
 
-    public final static double STRAIGHT_BLACKTOP_POWER_PORT_DIST      = -78;
+    public final static double STRAIGHT_BLACKTOP_POWER_PORT_DIST      = -78-1;
     public final static double STRAIGHT_BLACKTOP_PAST_START_LINE_DIST = 130;
 
     public final static int STRAIGHT_BLACKTOP_MED_SPEED  = 12000;
@@ -39,18 +39,14 @@ public class CatzAutonomousPaths
 
     public enum AUTO_STATE 
     {
-
         AS_INIT, AS_DRIVETO, AS_SHOOT, AS_DRIVEBACK, AS_TURN, AS_DONE;
-
     }
 
     public static AUTO_STATE autoState = AUTO_STATE.AS_INIT;
 
     public CatzAutonomousPaths() 
     {
-
         done = false;
-    
     }
 
     /**
@@ -78,19 +74,19 @@ public class CatzAutonomousPaths
                     break;
 
                     case AS_DRIVETO:
-                        //goalMet = auton.monitorEncoderPosition();
-                        System.out.println("drive to" + goalMet + ", " + Robot.shooter.getShooterReadyState());
+                        goalMet = auton.monitorEncoderPosition();
+                        //System.out.println("drive to, " + goalMet + ", " + Robot.shooter.getShooterReadyState());
                         if (goalMet)// && Robot.shooter.getShooterReadyState()) 
                         {
                             if(Robot.shooter.getShooterReadyState())
                             {
                                 autoState = AUTO_STATE.AS_SHOOT;
                             }
-                        }
+                        }/*
                         else
                         {
                             goalMet = auton.monitorEncoderPosition();
-                        }
+                        }*/
                     break;
 
                     case AS_SHOOT:

@@ -55,7 +55,7 @@ public class CatzAutonomous
 
     public double distanceGoal;
     public double distanceMoved;
-    public final double STOP_THRESHOLD_DIST = 0.1;
+    public final double STOP_THRESHOLD_DIST = 1;
     public final double SLOW_THRESHOLD_DIST = 30;
 
     public final double ENCODER_COUNTS_PER_INCH_LT = 1014.5; //without weight: 1046.6
@@ -115,8 +115,16 @@ public class CatzAutonomous
             SmartDashboard.putNumber("drive timer", driveT1.get());
 
             //System.out.println((currentEncPosition - leftInitialEncoderPos) + " = " + currentEncPosition + " - " + leftInitialEncoderPos);
-
-            double distanceToGoal = distanceGoal - distanceMoved;
+            double distanceToGoal;
+            if(distanceGoal > 0)
+            {
+                distanceToGoal = distanceGoal - distanceMoved;
+            }
+            else
+            {
+                distanceToGoal = distanceGoal + distanceMoved;
+            }
+                
 
             SmartDashboard.putNumber("Distance To Goal", distanceToGoal);
 

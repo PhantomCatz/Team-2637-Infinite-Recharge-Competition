@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 //import edu.wpi.first.wpilibj.DigitalInput;  //Currently using SparkMax Data Port
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 
@@ -29,7 +30,7 @@ public class CatzIntake
     private final double INTAKE_MOTOR_POWER_START_DEPLOY    =  0.25;
     private final double INTAKE_MOTOR_POWER_END_DEPLOY      =  0.0;
     private final double INTAKE_MOTOR_POWER_START_STOW      = -0.25;
-    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.30;
+    private final double INTAKE_MOTOR_POWER_END_STOW        = -0.2;
 
     final double INTAKE_THREAD_WAITING_TIME                 = 0.050;
     final double DEPLOY_REDUCE_POWER_TIME_OUT_SEC           = 0.400;
@@ -40,6 +41,7 @@ public class CatzIntake
     private final int INTAKE_MODE_DEPLOY_REDUCE_POWER       = 2;
     private final int INTAKE_MODE_STOW_START                = 3;
     private final int INTAKE_MODE_STOW_REDUCE_POWER         = 4;
+    private final int INTAKE_MODE_MANUAL_CONTROL            = 5;
 
     private WPI_VictorSPX intakeFigure8MtrCtrl;
     public  WPI_TalonSRX  intakeRollerMtrCtrl; // changed to public because dataport is being used on drivetrain?
@@ -144,10 +146,20 @@ public class CatzIntake
                         if(timeCounter > stowPowerCountLimit)
                         {
                             intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_END_STOW);
-                            intakeMode = INTAKE_MODE_NULL;
+                            //intakeMode = INTAKE_MODE_NULL;
                             intakeDeployed = false;
                         }
                         timeCounter++;
+                    break;
+
+                    case INTAKE_MODE_MANUAL_CONTROL:
+                        if(Robot.xboxAux.getBumper(Hand.kLeft)){
+                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_DEPLOY);
+                        }else if(Robot.xboxAux.getBumper(Hand.kRight)){
+                            intakeDeployMtrCtrl.set(INTAKE_MOTOR_POWER_START_STOW);
+                        }else{
+                            intakeDeployMtrCtrl.set(0.0);
+                        }
                     break;
 
                     default:
@@ -158,6 +170,12 @@ public class CatzIntake
             }   
         });
         intakeThread.start();
+    }
+    public void changeMode(int mode){
+        intakeMode = mode;
+    }
+    public int getMode(){
+        return intakeMode;
     }
     public void deployIntake()
     {

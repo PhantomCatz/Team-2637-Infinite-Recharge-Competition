@@ -53,6 +53,7 @@ public class CatzShooter
     final int NUM_OF_DATA_SAMPLES_TO_AVERAGE = 5;
 
     final double SHOOTER_THREAD_PERIOD           = 0.040;
+    final long   SHOOTER_THREAD_PERIOD_MS        = 40;
     final double SHOOTER_RAMP_TIMEOUT_SEC        = 4.000;  //TBD-TEST put back to 4.0
     final double INDEXER_SHOOT_TIME_SEC          = 1.60;
     final double SHOOTER_AVG_VEL_SAMPLE_TIME_SEC = 0.100;
@@ -163,6 +164,7 @@ public class CatzShooter
         shtrMtrCtrlA.set(shooterPower);
         Robot.indexer.setShooterIsRunning(false);
         Robot.xboxAux.setRumble(RumbleType.kLeftRumble, 0);
+    
     }
 
     public void bangBang(double minRPM, double maxRPM, double flywheelShaftVelocity) // bangbang method
@@ -232,7 +234,7 @@ public class CatzShooter
                     break;
 
                     case SHOOTER_STATE_RAMPING: // once targetRPM is given, velocity ramps up as fast as possible to reach targetRPM
-
+                        Robot.indexer.setShooterRamping(true);
                         if(flywheelShaftVelocity > targetRPMThreshold)
                         {
                             shooterState = SHOOTER_STATE_SET_SPEED;
@@ -255,7 +257,7 @@ public class CatzShooter
                             samplingVelocityCount = 0;
                             velocityData[velocityDataIndex++ ] = flywheelShaftVelocity;
                             System.out.print("S");
-
+                            Robot.indexer.setShooterRamping(false);
                             if(velocityDataIndex == NUM_OF_DATA_SAMPLES_TO_AVERAGE)
                             {
                                 velocityDataIndex = 0;

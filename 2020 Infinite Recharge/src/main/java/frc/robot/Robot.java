@@ -225,6 +225,8 @@ public class Robot extends TimedRobot
     indexer.clearSwitchState();
 
     shooter.autonomousOff();
+
+    //driveTrain.shiftToLowGear();
   }
 
   @Override
@@ -283,6 +285,15 @@ public class Robot extends TimedRobot
       intake.intakeRollerOff();
     }
 
+    if(xboxDrv.getXButton())
+    {
+      intake.changeMode(5);
+    }
+    else if(xboxDrv.getBButton())
+    {
+      intake.changeMode(0);
+    }
+
     //--------------------------------------------SHOOTER-------------------------------------------------
     if(xboxAux.getPOV() == DPAD_UP)
     {
@@ -299,12 +310,13 @@ public class Robot extends TimedRobot
     }
     else if(xboxAux.getBButton())
     {
-      indexer.setShooterIsRunning(true);
+      //indexer.setShooterIsRunning(true);
       shooter.shoot();
     } 
     else if(xboxAux.getStartButton())
     {
       shooter.shooterOff();
+      indexer.indexerStop();
     }
 
    //----------------------------------------------INDEXER----------------------------------------
@@ -320,7 +332,11 @@ public class Robot extends TimedRobot
   //--------------------------------------------------CLIMB----------------------------------------------
    if(xboxAux.getYButton())
    {
-     climber.climbRunWinch();
+     climber.climbRunWinchLO();
+   }
+   else if(xboxAux.getXButton())
+   {
+    climber.climbRunWinchHI();
    }
    else
    {
@@ -361,7 +377,7 @@ public class Robot extends TimedRobot
   {
     if(xboxAux.getAButton() && xboxDrv.getAButton())
     {
-      climber.climbRunWinch();
+      climber.climbRunWinchLO();
     }
 
     else if(xboxAux.getBButton() && xboxDrv.getBButton())
