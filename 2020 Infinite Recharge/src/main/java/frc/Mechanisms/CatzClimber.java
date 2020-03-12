@@ -28,12 +28,10 @@ public class CatzClimber
 
     public  final int LIGHTSABER_MC_PDP_PORT = 9; 
 
-    private final double CLIMB_MOTOR_LO_POWER_UP     = -0.5;
+    private final double CLIMB_MOTOR_POWER_UP     = -0.5;
     private final double CLIMB_MOTOR_POWER_DOWN   = 0.5;
-    private final double CLIMB_MOTOR_HI_POWER_UP = -0.7;
-    private final double LIGHTSABER_EXT_MOTOR_PWR_AUTO =  -0.6;
-    private final double LIGHTSABER_EXT_MOTOR_PWR_MANUAL =  -0.4;
-    private final double LIGHTSABER_RET_MOTOR_PWR = 0.25;
+    private final double LIGHTSABER_EXT_MOTOR_PWR =  -0.4;
+    private final double LIGHTSABER_RET_MOTOR_PWR = 0.15;
     private final double LIGHTSABER_OFF_MOTOR_PWR =  0.0;
 
     private boolean lightSaberAutoState = false;
@@ -42,7 +40,7 @@ public class CatzClimber
 
     final double CLIMB_THREAD_PERIOD           = 0.020;
     final double CLIMB_TIMEOUT                 = 5.000;
-    final double LIGHTSABER_HEIGHT_TIMEOUT     = 1.550;    
+    final double LIGHTSABER_HEIGHT_TIMEOUT     = 1.500;    
 
     private final int CLIMB_NULL_MODE    = 0;
     private final int LIGHTSABER_EXTEND  = 1;
@@ -94,15 +92,10 @@ public class CatzClimber
         climbCountLimit            = (int)Math.round( CLIMB_TIMEOUT             / CLIMB_THREAD_PERIOD);
     }
 
-    public void climbRunWinchLO()
+    public void climbRunWinch()
     {   
         //mode = CLIMB_RUN_WINCH;
-        climbMtrCtrlA.set(CLIMB_MOTOR_LO_POWER_UP);  
-    }
-
-    public void climbRunWinchHI()
-    {
-        climbMtrCtrlA.set(CLIMB_MOTOR_HI_POWER_UP);
+        climbMtrCtrlA.set(CLIMB_MOTOR_POWER_UP);  
     }
 
     public void climbStopWinch()
@@ -156,7 +149,7 @@ public class CatzClimber
                         System.out.println("C1: " + lightsaberHeightCount + " : " + lightsaberHeightCountLimit  + " : " + lightsaberRunning );
                         if(lightsaberRunning == false)
                         {
-                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR_AUTO);
+                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR);
                             lightsaberRunning = true;
                             System.out.println("C2: " + lightsaberHeightCountLimit );
                         }    
@@ -185,7 +178,7 @@ public class CatzClimber
                     case LIGHTSABER_MANUAL:
                         if(Robot.xboxAux.getY(Hand.kLeft) < -0.2) //up on the joystick is negative
                         {
-                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR_MANUAL);
+                            lightsaber.set(ControlMode.PercentOutput, LIGHTSABER_EXT_MOTOR_PWR);
                         }
                         else if(Robot.xboxAux.getY(Hand.kLeft) > 0.2)
                         {

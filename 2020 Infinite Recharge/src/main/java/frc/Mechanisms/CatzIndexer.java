@@ -89,7 +89,7 @@ public class CatzIndexer
                 }
                 else if(shooterRamping)
                 {
-                    if(indexerExitSwitchState == BALL_NOT_PRESENT)
+                    if(indexerEntranceSwitchState == BALL_NOT_PRESENT)
                     {
                         indexerMtrCtrl.set(BELT_SPEED_LOAD);
                     }
