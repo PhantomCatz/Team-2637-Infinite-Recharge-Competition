@@ -1,7 +1,5 @@
 package frc.Mechanisms;
 
-
-
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.SupplyCurrentLimitConfiguration;
@@ -14,7 +12,6 @@ import edu.wpi.first.wpilibj.SpeedControllerGroup;
 import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import frc.robot.Robot;
-
 
 public class CatzDriveTrain
 {
@@ -41,8 +38,8 @@ public class CatzDriveTrain
 
     private DoubleSolenoid gearShifter;
 
-    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 0;
-    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 1;
+    private final int DRVTRAIN_LGEAR_SOLENOID_PORT_A_PCM = 3;
+    private final int DRVTRAIN_HGEAR_SOLENOID_PORT_B_PCM = 4;
 
     /*
     private final double GEAR_RATIO    = 11/44;  TBD - OK TO LEAVE AS COMMENT IF DATA IS CORRECT
@@ -79,10 +76,11 @@ public class CatzDriveTrain
 
 
 
-    public final double PID_P = 0.25;   // original value was 0.05
+    public final double PID_P = 0.05;   // original value was 0.05
     public final double PID_I = 0.0001; // original value was 0.0005
-    public final double PID_D = 0;      // original value was 0.1
+    public final double PID_D = 0.1;      // original value was 0.1
     public final double PID_F = 0.02;   // original value was 0.005    0.02 value for target speed 16000
+    public final int PID_IZ = 10;
 
 
 
@@ -139,13 +137,13 @@ public class CatzDriveTrain
          drvTrainMtrCtrlLTFrnt.config_kI(0, PID_I);
          drvTrainMtrCtrlLTFrnt.config_kD(0, PID_D);
          drvTrainMtrCtrlLTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, 0);
+         drvTrainMtrCtrlLTFrnt.config_IntegralZone(0, PID_IZ);
 
          drvTrainMtrCtrlRTFrnt.config_kP(0, PID_P);
          drvTrainMtrCtrlRTFrnt.config_kI(0, PID_I);
          drvTrainMtrCtrlRTFrnt.config_kD(0, PID_D);
          drvTrainMtrCtrlRTFrnt.config_kF(0, PID_F);
-         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, 0); 
+         drvTrainMtrCtrlRTFrnt.config_IntegralZone(0, PID_IZ); 
     }
 
     public void arcadeDrive(double power, double rotation)
@@ -193,7 +191,7 @@ public class CatzDriveTrain
         double position = 0.0;
         if(side.equals("LT"))
         {
-            position = Robot.climber.climbMtrCtrlA.getSensorCollection().getQuadraturePosition(); //LT encoder is connnected to climber MC A
+            //position = Robot.climber.climbMtrCtrlA.getEncoder().getPosition(); //LT encoder is connnected to climber MC A
         }
         else if(side.equals("RT"))
         {

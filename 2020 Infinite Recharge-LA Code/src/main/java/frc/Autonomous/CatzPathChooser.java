@@ -1,6 +1,8 @@
 package frc.Autonomous;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 
 public class CatzPathChooser
 {
@@ -19,13 +21,19 @@ public class CatzPathChooser
         if(checkBoxL == true)
         {
 
+            CatzAutonomousPaths.monitorAutoState("LEFT");
+
         }
         else if(checkBoxM == true)
         {
 
+            CatzAutonomousPaths.monitorAutoState("STRAIGHT");
+
         }
         else if(checkBoxR == true)
         {
+
+            CatzAutonomousPaths.monitorAutoState("RIGHT");
 
         }
         else

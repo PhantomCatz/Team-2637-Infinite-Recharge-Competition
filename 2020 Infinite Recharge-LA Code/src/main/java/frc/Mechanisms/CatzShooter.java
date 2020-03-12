@@ -86,12 +86,14 @@ public class CatzShooter {
     public boolean inAutonomous;
 
     public boolean testMode = false;
+    private double testTime;
 
     enum ShooterTestStates {
         TEST_MODE_START_RAMPING, TEST_MODE_SET_SPEED, TEST_MODE_READY, TEST_MODE_START_SHOOTING;
     }
 
-    private ShooterTestStates shooterTestState;
+    private ShooterTestStates shooterTestState = ShooterTestStates.TEST_MODE_START_RAMPING;
+    
 
     public CatzShooter() // constructor
     {
@@ -171,6 +173,7 @@ public class CatzShooter {
 
     public void shooterOff() // turns shooter off , sets the shooter state to off
     {
+        System.out.println("Shooter is off");
         targetRPM = 0.0;
         shooterIsReady = false;
         shooterState = SHOOTER_STATE_OFF;
@@ -210,7 +213,8 @@ public class CatzShooter {
                 shootTime = Robot.dataCollectionTimer.get();
                 flywheelShaftVelocity = getFlywheelShaftVelocity();
 
-                switch (shooterState) {
+                switch (shooterState) 
+                {
                 case SHOOTER_STATE_OFF: // when there is no targetRPM (basically when no button is pressed) will be
                                         // shooter most of the time
                     shooterPower = SHOOTER_OFF_POWER;
@@ -246,7 +250,8 @@ public class CatzShooter {
                                             // targetRPM
                     Robot.indexer.setShooterRamping(true);
 
-                    if (testMode == true) {
+                    if (testMode == true) 
+                    {
                         shooterState = SHOOTER_TEST_MODE;
                     }
 
@@ -343,69 +348,77 @@ public class CatzShooter {
                     break;
 
                 case SHOOTER_TEST_MODE:
-                        switch (shooterTestState) 
-                        {
-                            case TEST_MODE_START_RAMPING:
-                                try 
-                                {
-                                    Thread.sleep(1000);
-                                } 
-                                catch (InterruptedException e) 
-                                {
-                                    System.out.println("Set mode ramping thread sleep error");
-                                    e.printStackTrace();
-                                }
-                                shooterTestState = ShooterTestStates.TEST_MODE_SET_SPEED;
-                                break;
+                    System.out.println("In test mode");
+                    
+                    switch (shooterTestState)
+                     {
+                    case TEST_MODE_START_RAMPING:
+                        testTime = Robot.dataCollectionTimer.get();
+                        System.out.println("Test ramping");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            System.out.println("Set mode ramping thread sleep error");
+                            e.printStackTrace();
+                        }
+                        shooterTestState = ShooterTestStates.TEST_MODE_SET_SPEED;
+                        break;
 
-                            case TEST_MODE_SET_SPEED:
-                                try 
-                                {
-                                    Thread.sleep(1000);
-                                } 
-                                catch (InterruptedException e) 
-                                {
-                                    System.out.println("Set mode set speed thread sleep error");
-                                    e.printStackTrace();
-                                }
-                                shooterTestState = ShooterTestStates.TEST_MODE_READY;
-                                break;
+                    case TEST_MODE_SET_SPEED:
+                        System.out.println("Test mode set sleep: " + (Robot.dataCollectionTimer.get()- testTime));
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            System.out.println("Set mode set speed thread sleep error");
+                            e.printStackTrace();
+                        }
+                        shooterTestState = ShooterTestStates.TEST_MODE_READY;
+                        break;
 
-                            case TEST_MODE_READY:
-                                try 
-                                {
-                                    Thread.sleep(1000);
-                                } 
-                                catch (InterruptedException e) 
-                                {
-                                    System.out.println("Set mode ready thread sleep error");
-                                    e.printStackTrace();
-                                }
-                                shooterTestState = ShooterTestStates.TEST_MODE_START_SHOOTING;
-                            break;
+                    case TEST_MODE_READY:
+                    System.out.println("Test mode ready");
+                    System.out.println("Test mode ready" + " Time: " + (Robot.dataCollectionTimer.get() - shootTime) );
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            System.out.println("Set mode ready thread sleep error");
+                            e.printStackTrace();
+                        }
+                        shooterTestState = ShooterTestStates.TEST_MODE_START_SHOOTING;
+                        shooterIsReady = true;
+                        break;
 
-                            case TEST_MODE_START_SHOOTING:
-                                try 
-                                {
-                                    Thread.sleep(1000);
-                                }
-                                catch (InterruptedException e) 
-                                {
-                                    System.out.println("Set mode shooting thread sleep error");
-                                    e.printStackTrace();
-                                }
-                                shooterIsDone = true;
-                            break;  
+                    case TEST_MODE_START_SHOOTING:
+                    System.out.println("Test mode start shooting");
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            System.out.println("Set mode shooting thread sleep error");
+                            e.printStackTrace();
+                        }
+                        shooterIsDone = true;
+                        System.out.println("shooting done!" + " Time: " + (Robot.dataCollectionTimer.get() - shootTime) );
+                        break;
 
-                        }//end of test case 
+                    }// end of test case
 
                     break;
 
-                    default:  //default code when there is nothing going on 
-                        shooterOff();
+                default: // default code when there is nothing going on
+                   
+                    shooterOff();
                     break;
-            }        
-            Timer.delay(SHOOTER_THREAD_PERIOD);
+                }
+                try
+                {
+                    Thread.sleep(SHOOTER_THREAD_PERIOD_MS);
+                }
+                catch (InterruptedException e) 
+                {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            
         }
     }); //end of thread
         shooterThread.start();
@@ -489,7 +502,7 @@ public class CatzShooter {
         SmartDashboard.putNumber("ENC Position",    getFlywheelShaftPosition());
         SmartDashboard.putNumber("Average rpm",  avgVelocity);
         SmartDashboard.putNumber("Shooter state", shooterState);
-        SmartDashboard.putString("Shooter test state", shooterTestState.toString());
+        //SmartDashboard.putString("Shooter test state", shooterTestState.toString());
     }
     public void smartdashboard() //what will be used during comp
     {

@@ -4,12 +4,12 @@
 /* must be accompanied by the FIRST BSD license file in the root directory of */
 /* the project.                                                               */
 /*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
 import java.util.ArrayList;
 
 import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoSink;
 import edu.wpi.cscore.VideoMode.PixelFormat;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.Autonomous.CatzAutonomousPaths;
 import frc.Autonomous.CatzPathChooser;
 import frc.DataLogger.CatzLog;
 import frc.DataLogger.DataCollection;
@@ -44,12 +45,13 @@ public class Robot extends TimedRobot
   public static CatzIndexer    indexer;
   public static CatzShooter    shooter;
   public static CatzClimber    climber;
+  public static CatzAutonomousPaths autonomousPaths;
 
   public DataCollection dataCollection;
 
   // Xbox Controllers
-  private        XboxController xboxDrv;
-  public static  XboxController xboxAux;
+  private static XboxController xboxDrv;
+  public  static XboxController xboxAux;
 
   private final int XBOX_DRV_PORT = 0;
   private final int XBOX_AUX_PORT = 1;
@@ -76,9 +78,11 @@ public class Robot extends TimedRobot
   private final int DPAD_LT = 270;
   private final int DPAD_RT = 90;
 
-  
   // Camera Settings
   private UsbCamera camera;
+  private UsbCamera camera2;
+
+  private VideoSink server;
 
   private static double cameraResolutionWidth = 320;
   private static double cameraResolutionHeight = 240;
@@ -87,11 +91,15 @@ public class Robot extends TimedRobot
   @Override
   public void robotInit() 
   {
+    xboxDrv = new XboxController(XBOX_DRV_PORT);
+    xboxAux = new XboxController(XBOX_AUX_PORT);
+
     driveTrain = new CatzDriveTrain();
     indexer    = new CatzIndexer();
     shooter    = new CatzShooter();
     intake     = new CatzIntake();
-    climber    = new CatzClimber();    
+    climber    = new CatzClimber();  
+      
     
     pdp = new PowerDistributionPanel();
 
@@ -104,8 +112,6 @@ public class Robot extends TimedRobot
     
     dataCollection.dataCollectionInit(dataArrayList);
 
-    xboxDrv = new XboxController(XBOX_DRV_PORT);
-    xboxAux = new XboxController(XBOX_AUX_PORT);
    
     //create a path chooser
     SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORL, true);
@@ -119,10 +125,22 @@ public class Robot extends TimedRobot
     SmartDashboard.putBoolean("Use default autonomous?", false);
   
     // Camera Configuration
-    camera = CameraServer.getInstance().startAutomaticCapture();
+    camera = CameraServer.getInstance().startAutomaticCapture(0);
     camera.setFPS(15);
     camera.setResolution(320, 240);
     camera.setPixelFormat(PixelFormat.kMJPEG);
+
+    camera2 = CameraServer.getInstance().startAutomaticCapture(1);
+    camera2.setFPS(15);
+    camera2.setResolution(320, 240);
+    camera2.setPixelFormat(PixelFormat.kMJPEG);
+
+    server = CameraServer.getInstance().getServer();
+
+    intake.intakeControl();
+    indexer.startIndexerThread();
+    shooter.setShooterVelocity();
+    climber.climbControl();
   }
 
   @Override
@@ -157,23 +175,43 @@ public class Robot extends TimedRobot
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORM, prev_boxM);
 		SmartDashboard.putBoolean(CatzConstants.POSITION_SELECTORR, prev_boxR);
 
-  }
+    SmartDashboard.putBoolean("Deployed", intake.getDeployedLimitSwitchState());
+    SmartDashboard.putBoolean("Stowed",   intake.getStowedLimitSwitchState());
+
+    
+    indexer.debugSmartDashboard();
+    indexer.smartDashboard();
+
+    shooter.debugSmartDashboard();
+    shooter.smartdashboard();
+
+    SmartDashboard.putNumber("deploy mtr ctrl", intake.getDeployMotorPower());
+    }
 
   @Override
   public void autonomousInit() 
   {
-    CatzPathChooser.choosePath();
+
+    driveTrain.setDriveTrainPIDConfiguration();
+
+    driveTrain.shiftToHighGear();
 
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
     dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
     dataCollection.startDataCollection();
+
+    autonomousPaths = new CatzAutonomousPaths();
+    shooter.autonomousOn();
   }
 
   @Override
   public void autonomousPeriodic() 
   {
+    
+    autonomousPaths.monitorAutoState("STRAIGHT");
+
   }
 
   @Override
@@ -184,114 +222,177 @@ public class Robot extends TimedRobot
     dataCollection.dataCollectionInit(dataArrayList);
     dataCollectionTimer.reset();
     dataCollectionTimer.start();
-    dataCollection.setLogDataID(dataCollection.LOG_ID_DRV_STRAIGHT_PID);
+    dataCollection.setLogDataID(dataCollection.LOG_ID_SHOOTER);
     dataCollection.startDataCollection();
+
+    indexer.clearSwitchState();
+
+    shooter.autonomousOff();
+
+    //driveTrain.shiftToLowGear();
   }
 
   @Override
   public void teleopPeriodic()
   {
-  //-------------------------------------------Drivetrain------------------------------------------------------------- 
+    //-------------------------------------------Drivetrain------------------------------------------------------------- 
     driveTrain.arcadeDrive(xboxDrv.getY(Hand.kLeft), xboxDrv.getX(Hand.kRight));
-
   
     if(xboxDrv.getBumper(Hand.kLeft))
     {
       driveTrain.shiftToHighGear();
     }
-
-    if(xboxDrv.getBumper(Hand.kRight))
+    else if(xboxDrv.getBumper(Hand.kRight))
     {
       driveTrain.shiftToLowGear();
     }
-//-----------------------------------------------INTAKE---------------------------------------------------
-    if(xboxDrv.getStickButtonPressed(Hand.kLeft))
+
+    if(xboxDrv.getStartButtonPressed())
+    {
+      server.setSource(camera);
+    }
+    else if(xboxDrv.getBackButtonPressed())
+    {
+      server.setSource(camera2);
+    }
+
+    //-----------------------------------------------INTAKE---------------------------------------------------
+    if(xboxDrv.getStickButtonPressed(Hand.kLeft) && intake.getDeployedLimitSwitchState() == false)
     {
       intake.deployIntake();
     }
-
-    if(xboxDrv.getStickButtonPressed(Hand.kRight))
+    else if(xboxDrv.getStickButtonPressed(Hand.kRight) && intake.getStowedLimitSwitchState() == false)
     {
       intake.stowIntake();
     }
+    /*else if(xboxDrv.getAButton() == true)
+    {
+      intake.applyBallCompression();
+    } 
+    /*else
+    {
+      intake.stopDeploying();
+    }*/
 
     if(xboxDrv.getTriggerAxis(Hand.kLeft) > 0.2)
     {
       intake.intakeRollerIn();
+      intake.applyBallCompression();
     }
-
-    if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
+    else if(xboxDrv.getTriggerAxis(Hand.kRight) > 0.2)
     {
       intake.intakeRollerOut();
     }
-
-    if(xboxDrv.getAButton())
+    else
     {
-      intake.applyBallCompression();
+      intake.intakeRollerOff();
     }
-    //--------------------------------------------SHOOTER-------------------------------------------------
 
+    if(xboxDrv.getXButton())
+    {
+      intake.changeMode(5);
+    }
+    else if(xboxDrv.getBButton())
+    {
+      intake.changeMode(0);
+    }
+
+    //--------------------------------------------SHOOTER-------------------------------------------------
     if(xboxAux.getPOV() == DPAD_UP)
     {
       shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_LO);
+      //shooter.setTargetVelocity(.25);
     }
-
-    if(xboxAux.getPOV() == DPAD_LT)
+    else if(xboxAux.getPOV() == DPAD_LT)
     {
      shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_MD);
     }
-
-    if(xboxAux.getPOV() == DPAD_DN)
+    else if(xboxAux.getPOV() == DPAD_DN)
     {
       shooter.setTargetRPM(shooter.SHOOTER_TARGET_RPM_HI);
     }
-   
-   if(xboxAux.getBButton())
-   {
-      indexer.setShooterIsRunning(true);
+    else if(xboxAux.getBButton())
+    {
+      //indexer.setShooterIsRunning(true);
       shooter.shoot();
-   }
-
-   if(xboxAux.getStartButton())
-   {
-    shooter.shooterOff();
-   }
+    } 
+    else if(xboxAux.getStartButton())
+    {
+      shooter.shooterOff();
+      indexer.indexerStop();
+    }
 
    //----------------------------------------------INDEXER----------------------------------------
-   
    if(xboxAux.getBackButton())
    {
-    indexer.indexerReversed();
+    indexer.indexerReversedOn();
+   } 
+   else
+   {
+     indexer.indexerReversedOff();
    }
-//--------------------------------------------------CLIMB----------------------------------------------
+
+  //--------------------------------------------------CLIMB----------------------------------------------
    if(xboxAux.getYButton())
    {
-     climber.runWinch();
+     climber.climbRunWinchLO();
+   }
+   else if(xboxAux.getXButton())
+   {
+    climber.climbRunWinchHI();
+   }
+   else
+   {
+     climber.climbStopWinch();
    }
 
+   if(xboxAux.getAButton())
+   {
+     climber.lightsaberAutoExtend();
+   }
+/*
    if(xboxAux.getY(Hand.kLeft )> 0.2)
    {  
-      climber.extendLightsaber();
+      climber.lightsaberExtend();
    }
-
-   if(xboxAux.getY(Hand.kLeft)> -0.2)
+    else if(xboxAux.getY(Hand.kLeft)< -0.2)
    {
-      climber.retractLightsaber();
+      climber.lightsaberRetract();
    }
+   else
+   {
+      climber.lightsaberOff();
+   }
+   */
 
-//ONLY TESTING 
-   if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
+  //--------------------------------------------------TESTING----------------------------------------------
+   /*if(xboxAux.getAButton()) //TBD is A and B used on aux for different purpose
    {
      shooter.logTestData = true;
    }
    if(xboxAux.getBButton())
    {
      shooter.logTestData = false;
-   }
-  
+   }*/
+  }
 
-  
+  public void testPeriodic() 
+  {
+    if(xboxAux.getAButton() && xboxDrv.getAButton())
+    {
+      climber.climbRunWinchLO();
+    }
 
+    else if(xboxAux.getBButton() && xboxDrv.getBButton())
+    {
+      climber.climbReverse();
+    }
+
+    else
+    {
+      climber.climbStopWinch();
+    }
+    
   }
   
   @Override
@@ -299,10 +400,10 @@ public class Robot extends TimedRobot
   {
     dataCollection.stopDataCollection();
     
-    for (int i = 0; i <dataArrayList.size();i++)
+    /*for (int i = 0; i <dataArrayList.size();i++)
     {
        System.out.println(dataArrayList.get(i));
-    }  
+    }*/
 
     try 
     {
